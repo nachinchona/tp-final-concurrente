@@ -15,7 +15,6 @@ public class Asistente extends Thread {
     public void run() {
         while(true) {
             try {
-                equipos.obtenerVisitante();
                 equipos.tomarEquipo();
                 equipos.entregarEquipo();
                 Thread.sleep(r.nextInt(200,1000));
