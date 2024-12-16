@@ -1,20 +1,22 @@
 package Hilos;
-import Recursos.Horario;
+import Recursos.EcoParque;
+import Recursos.Interfaz;
 
 public class Reloj extends Thread {
-    private Horario horario;
+    private Interfaz horario;
+    private EcoParque parque;
 
-    public Reloj(Horario horario) {
+    public Reloj(Interfaz horario, EcoParque parque) {
         this.horario = horario;
+        this.parque = parque;
     }
 
     public void run() {
-        // un milisegundo equivale a un minuto
+        // 500 milisegundos equivale a un minuto
         while (true) {
             horario.aumentarTiempo();
-
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -2,51 +2,45 @@ package Recursos;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.Semaphore;
 
 import Hilos.Visitante;
 
 public class EquipoSnorkel {
-    // cada permiso comprende el equipo completo (snorkel, salvavidas y patas de rana)
-    private Semaphore equiposDisponibles = new Semaphore(5, true);
+    private int equiposDisponibles = 5;
     private Queue<Visitante> fila = new LinkedList<>();
-    private Semaphore esperaEquipos = new Semaphore(0);
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_RESET = "\u001B[0m";
 
-    public synchronized void salirFila(Visitante visitante) throws InterruptedException {
-        while (!fila.peek().equals(visitante)) {
+    // visitante hace fila, el visitante notificado sale de la fila solo si el es el frente de la cola
+    public synchronized void hacerFila(Visitante visitante) throws InterruptedException {
+        fila.add(visitante);
+        System.out.println(ANSI_RED + "SNORKEL --- " + Thread.currentThread().getName() + " está haciendo fila para hacer snorkel." + ANSI_RESET);
+        this.notifyAll();
+        while (!fila.peek().equals(visitante) || equiposDisponibles == 0) {
             this.wait();
         }
         fila.remove(visitante);
-        System.out.println(Thread.currentThread().getName() + " dejó de hacer fila para hacer snorkel.");
-        this.notify();
+        equiposDisponibles--;
+        System.out.println("SNORKEL --- " + Thread.currentThread().getName() + " dejó de hacer fila para hacer snorkel.");
     }
 
-    // visitante hace fila y avisa a asistente
-    public synchronized void hacerFila(Visitante visitante) throws InterruptedException {
-        fila.add(visitante);
-        System.out.println(Thread.currentThread().getName() + " está haciendo fila para hacer snorkel.");
-        this.wait();
+    public synchronized void hacerSnorkel() throws InterruptedException {
+        System.out.println("SNORKEL --- " + Thread.currentThread().getName() + " recibe equipo y empieza a hacer snorkel.");
     }
 
-    // asistente avisa que hay equipo libre y se lo entrega
-    public void entregarEquipo() {
-        esperaEquipos.release();
+    // asistente atiende al cliente
+    public synchronized void atenderCliente() throws InterruptedException {
+        while(fila.isEmpty() || equiposDisponibles == 0) {
+            this.wait();
+        }
+        this.notifyAll();
     }
 
-    // visitante espera equipo
-    public void recibirEquipo() throws InterruptedException {
-        esperaEquipos.acquire();
-        System.out.println(Thread.currentThread().getName() + " recibe equipo para hacer snorkel.");
-    }
-
-    // asistente toma uno de los equipos disponibles para entregarlo luego
-    public void tomarEquipo() throws InterruptedException {
-        equiposDisponibles.acquire();
-    }
-
-    // visitante termina de usar equipo, lo devuelve
-    public void dejarEquipo() {
-        equiposDisponibles.release();
-        System.out.println(Thread.currentThread().getName() + " dejó de hacer snorkel.");
+    // visitante termina de usar equipo, lo devuelve y notifica a todos (para incluir a los asistentes)
+    public synchronized void dejarEquipo() {
+        equiposDisponibles++;
+        System.out.println(ANSI_GREEN + "SNORKEL --- " + Thread.currentThread().getName() + " dejó de hacer snorkel." + ANSI_RESET);
+        this.notifyAll();
     }
 }

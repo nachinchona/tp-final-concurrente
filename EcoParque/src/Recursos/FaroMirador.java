@@ -13,6 +13,9 @@ public class FaroMirador {
     private Semaphore administrador = new Semaphore(0);
     private Semaphore avisarVisitante = new Semaphore(0);
     private boolean asignado; // tobogan asignado por el administrador
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_RESET = "\u001B[0m";
 
     public void avisarAdministrador() {
         administrador.release();
@@ -23,13 +26,13 @@ public class FaroMirador {
         return asignado;
     }
 
-    public void avisarVisitante(boolean valor) {
+    public void avisarVisitante() {
         avisarVisitante.release();
-        asignado = valor;
     }
 
     public void asignarTobogan(boolean valor) throws InterruptedException {
         administrador.acquire();
+        asignado = valor;
     }
 
     public void usarTobogan(boolean valor) throws InterruptedException {
@@ -38,7 +41,7 @@ public class FaroMirador {
         } else {
             tobogan2.acquire();
         }
-        System.out.println(Thread.currentThread().getName() + " se subió al tobogan " + (valor ? "1" : "2"));
+        System.out.println("FARO MIRADOR --- " + Thread.currentThread().getName() + " se subió al tobogan " + (valor ? "1" : "2"));
     }
 
     public void liberarTobogan(boolean valor) {
@@ -47,13 +50,13 @@ public class FaroMirador {
         } else {
             tobogan2.release();
         }
-        System.out.println(Thread.currentThread().getName() + " se bajó del tobogan " + (valor ? "1" : "2"));
+        System.out.println(ANSI_GREEN + "FARO MIRADOR --- " + Thread.currentThread().getName() + " se bajó del tobogan " + (valor ? "1" : "2") + ANSI_RESET);
     }
 
     public void ocuparEscalon(Visitante visitante) {
         try {
             escalera.add(visitante);
-            System.out.println(Thread.currentThread().getName() + " entró a la escalera.");
+            System.out.println(ANSI_RED + "FARO MIRADOR --- " + Thread.currentThread().getName() + " entró a la escalera." + ANSI_RESET);
         } catch (IllegalStateException e) {
             System.out.println("FARO MIRADOR --- Escalera llena");
         }
@@ -61,6 +64,6 @@ public class FaroMirador {
 
     public void desocuparEscalon(Visitante visitante) {
         escalera.remove(visitante);
-        System.out.println(Thread.currentThread().getName() + " dejó la escalera.");
+        System.out.println("FARO MIRADOR --- " + Thread.currentThread().getName() + " dejó la escalera.");
     }
 }
