@@ -1,5 +1,13 @@
 package Recursos;
 
+import Actividades.CarreraGomones.Gomon;
+import Actividades.CarreraGomones.GomonDoble;
+import Actividades.CarreraGomones.GomonIndividual;
+import Hilos.Visitante;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -19,12 +27,71 @@ public class Gomones {
     private boolean trenEnViaje = false; // Indica si el tren está en viaje
 
     private final Semaphore bicicletas = new Semaphore(CANTIDAD_BICICLETAS, true);
-    private final Semaphore gomonesIndividuales = new Semaphore(CANTIDAD_GOMONES_INDIVIDUALES, true);
-    private final Semaphore gomonesDobles = new Semaphore(CANTIDAD_GOMONES_DOBLES, true);
-    private final CyclicBarrier inicioCarrera = new CyclicBarrier(H);
-    private final BlockingQueue<Integer> bolsos = new ArrayBlockingQueue<>(50);
 
-    public void realizarActividad(String metodoTransporte, boolean usaGomonDoble) throws InterruptedException, BrokenBarrierException {
+    private Lock lockCarrera = new ReentrantLock(true);
+    private final Condition inicioCarrera = lockCarrera.newCondition();
+    private final Condition esperandoCarrera = lockCarrera.newCondition();
+    private final HashMap<Visitante, Integer> bolsos = new HashMap<>();
+
+    //Donde estan los gomones
+    private BlockingQueue<GomonIndividual> disponiblesIndividuales = new LinkedBlockingQueue<>();
+    private BlockingQueue<GomonDoble> disponiblesDobles = new LinkedBlockingQueue<>();
+    private BlockingQueue<GomonDoble> esperandoDobles = new LinkedBlockingQueue<>();
+
+    private int gomonesListos = 0;
+    private int bolsoActual = 0;
+    private int posiciones = 0;
+    private boolean enCarrera = false;
+
+    public void realizarActividad(boolean usaGomonDoble, Visitante visitante) throws InterruptedException, BrokenBarrierException {
+        // Obtener un gomon
+        lockCarrera.lock();
+        Gomon miGomon;
+        if (usaGomonDoble) {
+            if (!esperandoDobles.isEmpty()) {
+                miGomon = esperandoDobles.take();
+                ((GomonDoble)miGomon).añadirCompañero(visitante);
+                while (enCarrera) {
+                    esperandoCarrera.await();
+                }
+                gomonesListos++;
+                System.out.println(Thread.currentThread().getName() + " encontró compañero.");
+            } else {
+                miGomon = disponiblesDobles.take();
+                miGomon.añadirVisitante(visitante);
+                esperandoDobles.add((GomonDoble)miGomon);
+                System.out.println(Thread.currentThread().getName() + " espera por un compañero.");
+            }
+            System.out.println(Thread.currentThread().getName() + " obtiene un gomon doble.");
+        } else {
+            miGomon = disponiblesIndividuales.take();
+            miGomon.añadirVisitante(visitante);
+            while (enCarrera) {
+                esperandoCarrera.await();
+            }
+            gomonesListos++;
+            System.out.println(Thread.currentThread().getName() + " obtiene un gomon individual.");
+        }
+
+        if (gomonesListos == H) {
+            System.out.println(Thread.currentThread().getName() + " está listo para la carrera. GOMONES LISTOS PARA EMPEZAR");
+            enCarrera = true;
+            gomonesListos = 0;
+            inicioCarrera.signalAll();
+        } else {
+            System.out.println(Thread.currentThread().getName() + " está listo para la carrera. Esperando gomones");
+            inicioCarrera.await();
+        }
+        lockCarrera.unlock();
+        System.out.println(Thread.currentThread().getName() + " inicia la carrera.");
+
+        Thread.sleep(miGomon.correr());
+
+
+
+    }
+
+    public void elegirTransporte(String metodoTransporte, Visitante visitante) throws InterruptedException {
         // Traslado al inicio
         if (metodoTransporte.equals("bicicleta")) {
             bicicletas.acquire();
@@ -33,35 +100,14 @@ public class Gomones {
         } else if (metodoTransporte.equals("tren")) {
             usarTren();
         }
-
         // Guardar pertenencias
-        int numeroBolso = Thread.currentThread().hashCode();
-        bolsos.put(numeroBolso);
-        System.out.println(Thread.currentThread().getName() + " guarda pertenencias en el bolso " + numeroBolso);
+        bolsos.put(visitante, ++bolsoActual);
+        System.out.println(Thread.currentThread().getName() + " guarda pertenencias en el bolso " + bolsoActual);
+    }
 
-        // Obtener un gomon
-        if (usaGomonDoble) {
-            gomonesDobles.acquire();
-            System.out.println(Thread.currentThread().getName() + " obtiene un gomon doble.");
-        } else {
-            gomonesIndividuales.acquire();
-            System.out.println(Thread.currentThread().getName() + " obtiene un gomon individual.");
-        }
-
-        // Esperar para iniciar la carrera
-        System.out.println(Thread.currentThread().getName() + " está listo para la carrera.");
-        inicioCarrera.await();
-
-        System.out.println(Thread.currentThread().getName() + " inicia la carrera.");
-
-        // Liberar recursos al final
-        if (usaGomonDoble) {
-            gomonesDobles.release();
-        } else {
-            gomonesIndividuales.release();
-        }
-        System.out.println(Thread.currentThread().getName() + " termina la carrera y recoge su bolso " + numeroBolso);
-        bolsos.remove(numeroBolso);
+    public void buscarBolso(Visitante visitante) {
+        System.out.println(Thread.currentThread().getName() + " termina la carrera y recoge su bolso " + bolsos.get(visitante));
+        bolsos.remove(visitante);
     }
 
     public void usarTren() throws InterruptedException {
