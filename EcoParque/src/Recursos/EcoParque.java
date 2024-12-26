@@ -2,8 +2,10 @@ package Recursos;
 
 import java.util.Random;
 import java.util.concurrent.BrokenBarrierException;
+
 import Hilos.Reloj;
 import Hilos.Visitante;
+import Actividades.CarreraGomones.Chofer;
 import Actividades.FaroMiradorTobogan.Administrador;
 import Actividades.Ingreso.Colectivero;
 import Actividades.Ingreso.Ingreso;
@@ -20,10 +22,10 @@ public class EcoParque {
     Ingreso ingreso = new Ingreso(interfaz);
     Tienda tienda = new Tienda();
     NadoDelfines nado = new NadoDelfines();
-    FaroMirador faro = new FaroMirador();
-    EquipoSnorkel snorkel = new EquipoSnorkel();
+    FaroMirador faro = new FaroMirador(this);
+    EquipoSnorkel snorkel = new EquipoSnorkel(this);
     Restaurante[] restaurantes = new Restaurante[2];
-    // demas actividades
+    Gomones gomones = new Gomones();
 
     // empleados y controles
     Cajero cajero1 = new Cajero(this);
@@ -32,6 +34,7 @@ public class EcoParque {
     Asistente asistenteSnorkel2 = new Asistente(this);
     Administrador administradorFaro = new Administrador(this);
     Colectivero colectivero = new Colectivero(this);
+    Chofer chofer = new Chofer(this);
 
     public EcoParque() {
         restaurantes[0] = new Restaurante("Restaurante");
@@ -55,20 +58,24 @@ public class EcoParque {
     public void irAFaroMirador(Visitante visitante) throws InterruptedException {
         faro.ocuparEscalon(visitante);
         Thread.sleep(r.nextInt(1000));
-        faro.desocuparEscalon(visitante);
-        faro.avisarAdministrador();
-        boolean toboganAsignado = faro.esperarAviso();
-        faro.usarTobogan(toboganAsignado);
-        Thread.sleep(r.nextInt(2000, 4000));
-        faro.liberarTobogan(toboganAsignado);
+        boolean rta = faro.desocuparEscalon(visitante);
+        if (rta) {
+            faro.avisarAdministrador();
+            boolean toboganAsignado = faro.esperarAviso();
+            faro.usarTobogan(toboganAsignado);
+            Thread.sleep(r.nextInt(2000, 4000));
+            faro.liberarTobogan(toboganAsignado);
+        }
     }
 
     public void hacerSnorkel(Visitante visitante) throws InterruptedException {
-        snorkel.hacerFila(visitante);
+        boolean rta = snorkel.hacerFila(visitante);
         Thread.sleep(r.nextInt(1000));
-        snorkel.hacerSnorkel();
-        Thread.sleep(r.nextInt(2000, 4000));
-        snorkel.dejarEquipo();
+        if (rta) {
+            snorkel.hacerSnorkel();
+            Thread.sleep(r.nextInt(2000, 4000));
+            snorkel.dejarEquipo();
+        }
     }
 
     public void irARestaurante(int eleccion, Visitante visitante) throws InterruptedException {
@@ -79,6 +86,17 @@ public class EcoParque {
             } else {
                 restaurantes[eleccion].merendar(visitante);
             }
+        }
+    }
+
+    public void hacerCarreraGomones(boolean eleccionTransporte, boolean eleccionGomon, Visitante visitante) throws InterruptedException, BrokenBarrierException {
+        // eleccionTransporte true = bicicleta, false = tren
+        gomones.elegirTransporte(eleccionTransporte, visitante);
+        gomones.guardarBolso(visitante);
+        gomones.realizarActividad(eleccionGomon, visitante);
+        gomones.guardarBolso(visitante);
+        if (!eleccionTransporte) {
+            gomones.bajarTren();
         }
     }
 
@@ -155,5 +173,9 @@ public class EcoParque {
 
     public Ingreso getIngreso() {
         return ingreso;
+    }
+
+    public Gomones getGomones() {
+        return gomones;
     }
 }

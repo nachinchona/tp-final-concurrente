@@ -3,7 +3,10 @@ package Actividades.CarreraGomones;
 import Hilos.Visitante;
 
 public class GomonIndividual extends Gomon {
-    private Visitante visitante;
+
+    public GomonIndividual(int numeroGomon) {
+        super(numeroGomon);
+    }
 
     public void añadirVisitante(Visitante visitante) {
         super.añadirVisitante(visitante);

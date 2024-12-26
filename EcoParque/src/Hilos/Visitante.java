@@ -37,8 +37,8 @@ public class Visitante extends Thread {
             }
         }
         if (quiereIrse) {
-            parque.salir();
             System.out.println("HASTA PRONTO! --- " + this.getName() + " quiso irse antes de tiempo de EcoParque.");
         }
+        parque.salir();
     }
 }

@@ -25,5 +25,8 @@ public class Asistente extends Thread {
                 e.printStackTrace();
             }
         }
+        if (!parque.sePuedenRealizarActividades()) {
+            equipos.cerrar();
+        }
     }
 }

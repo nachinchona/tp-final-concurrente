@@ -6,8 +6,6 @@ import Actividades.CarreraGomones.GomonIndividual;
 import Hilos.Visitante;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -23,6 +21,9 @@ public class Gomones {
 
     private final Lock lockTren = new ReentrantLock(); // Lock para manejar pasajeros
     private final Condition trenListo = lockTren.newCondition(); // Notificación para la salida del tren
+    private final Condition bajarTren = lockTren.newCondition();
+    private final Condition volverTren = lockTren.newCondition();
+
     private int pasajerosActuales = 0; // Contador de pasajeros en el tren
     private boolean trenEnViaje = false; // Indica si el tren está en viaje
 
@@ -33,7 +34,7 @@ public class Gomones {
     private final Condition esperandoCarrera = lockCarrera.newCondition();
     private final HashMap<Visitante, Integer> bolsos = new HashMap<>();
 
-    //Donde estan los gomones
+    // Donde estan los gomones
     private BlockingQueue<GomonIndividual> disponiblesIndividuales = new LinkedBlockingQueue<>();
     private BlockingQueue<GomonDoble> disponiblesDobles = new LinkedBlockingQueue<>();
     private BlockingQueue<GomonDoble> esperandoDobles = new LinkedBlockingQueue<>();
@@ -43,26 +44,36 @@ public class Gomones {
     private int posiciones = 0;
     private boolean enCarrera = false;
 
-    public void realizarActividad(boolean usaGomonDoble, Visitante visitante) throws InterruptedException, BrokenBarrierException {
+    public Gomones() {
+        for (int i = 0; i < 5; i++) {
+            disponiblesDobles.add(new GomonDoble(i + 1));
+        }
+        for (int i = 5; i < 10; i++) {
+            disponiblesIndividuales.add(new GomonIndividual(i + 1));
+        }
+    }
+
+    public void realizarActividad(boolean usaGomonDoble, Visitante visitante)
+            throws InterruptedException, BrokenBarrierException {
         // Obtener un gomon
         lockCarrera.lock();
         Gomon miGomon;
         if (usaGomonDoble) {
             if (!esperandoDobles.isEmpty()) {
                 miGomon = esperandoDobles.take();
-                ((GomonDoble)miGomon).añadirCompañero(visitante);
+                ((GomonDoble) miGomon).añadirCompañero(visitante);
                 while (enCarrera) {
                     esperandoCarrera.await();
                 }
                 gomonesListos++;
-                System.out.println(Thread.currentThread().getName() + " encontró compañero.");
+                System.out.println("GOMONES --- " + Thread.currentThread().getName() + " encontró compañero.");
             } else {
                 miGomon = disponiblesDobles.take();
                 miGomon.añadirVisitante(visitante);
-                esperandoDobles.add((GomonDoble)miGomon);
-                System.out.println(Thread.currentThread().getName() + " espera por un compañero.");
+                esperandoDobles.add((GomonDoble) miGomon);
+                System.out.println("GOMONES --- " + Thread.currentThread().getName() + " espera por un compañero.");
             }
-            System.out.println(Thread.currentThread().getName() + " obtiene un gomon doble.");
+            System.out.println("GOMONES --- " + Thread.currentThread().getName() + " obtiene un gomon doble.");
         } else {
             miGomon = disponiblesIndividuales.take();
             miGomon.añadirVisitante(visitante);
@@ -70,43 +81,66 @@ public class Gomones {
                 esperandoCarrera.await();
             }
             gomonesListos++;
-            System.out.println(Thread.currentThread().getName() + " obtiene un gomon individual.");
+            System.out.println("GOMONES --- " + Thread.currentThread().getName() + " obtiene un gomon individual.");
         }
 
         if (gomonesListos == H) {
-            System.out.println(Thread.currentThread().getName() + " está listo para la carrera. GOMONES LISTOS PARA EMPEZAR");
+            System.out.println(
+                    "GOMONES --- " + Thread.currentThread().getName()
+                            + " está listo para la carrera. GOMONES LISTOS PARA EMPEZAR");
             enCarrera = true;
             gomonesListos = 0;
             inicioCarrera.signalAll();
         } else {
-            System.out.println(Thread.currentThread().getName() + " está listo para la carrera. Esperando gomones");
+            System.out.println("GOMONES --- " + Thread.currentThread().getName()
+                    + " está listo para la carrera. Esperando gomones");
             inicioCarrera.await();
         }
         lockCarrera.unlock();
-        System.out.println(Thread.currentThread().getName() + " inicia la carrera.");
+        System.out.println("GOMONES --- " + Thread.currentThread().getName() + " inicia la carrera.");
 
         Thread.sleep(miGomon.correr());
-
-
-
+        switch (posiciones) {
+            case 0:
+                System.out.println("GOMONES --- El gomón " + miGomon.toString() + " salió primero en la carrera!");
+                posiciones++;
+                break;
+            case 1:
+                System.out.println("GOMONES --- El gomón " + miGomon.toString() + " salió segundo en la carrera!");
+                posiciones++;
+                break;
+            case 2:
+                System.out.println("GOMONES --- El gomón " + miGomon.toString() + " salió tercero en la carrera!");
+                posiciones++;
+                break;
+            default:
+                System.out.println("GOMONES --- El gomón " + miGomon.toString() + " terminó la carrera.");
+                break;
+        }
     }
 
-    public void elegirTransporte(String metodoTransporte, Visitante visitante) throws InterruptedException {
+    public void elegirTransporte(boolean eleccionTransporte, Visitante visitante) throws InterruptedException {
         // Traslado al inicio
-        if (metodoTransporte.equals("bicicleta")) {
+        if (eleccionTransporte) {
             bicicletas.acquire();
-            System.out.println(Thread.currentThread().getName() + " usa una bicicleta para llegar.");
+            System.out.println("GOMONES --- " + Thread.currentThread().getName() + " usa una bicicleta para llegar.");
             Thread.sleep(1000); // Simula el traslado
-        } else if (metodoTransporte.equals("tren")) {
+        } else {
             usarTren();
         }
+    }
+
+    public void guardarBolso(Visitante visitante) {
         // Guardar pertenencias
         bolsos.put(visitante, ++bolsoActual);
-        System.out.println(Thread.currentThread().getName() + " guarda pertenencias en el bolso " + bolsoActual);
+        System.out.println(
+                "GOMONES --- " + Thread.currentThread().getName() + " guarda pertenencias en el bolso " + bolsoActual);
     }
 
     public void buscarBolso(Visitante visitante) {
-        System.out.println(Thread.currentThread().getName() + " termina la carrera y recoge su bolso " + bolsos.get(visitante));
+        System.out.println(
+                "GOMONES --- " + Thread.currentThread().getName() + " termina la carrera y recoge su bolso "
+                        + bolsos.get(visitante));
         bolsos.remove(visitante);
     }
 
@@ -120,7 +154,9 @@ public class Gomones {
 
             // Subir al tren
             pasajerosActuales++;
-            System.out.println(Thread.currentThread().getName() + " abordó el tren. Pasajeros actuales: " + pasajerosActuales);
+            System.out.println(
+                    "GOMONES --- " + Thread.currentThread().getName() + " abordó el tren. Pasajeros actuales: "
+                            + pasajerosActuales);
 
             // Si se llena el tren, notificar al conductor
             if (pasajerosActuales == CAPACIDAD_TREN) {
@@ -131,7 +167,33 @@ public class Gomones {
         }
     }
 
-    private void controlTren() {
+    public void volverTren() throws InterruptedException {
+        System.out.println("GOMONES --- Conductor espera a que bajen todos los pasajeros");
+        bajarTren.signalAll();
+        volverTren.await();
+        System.out.println("GOMONES --- Se bajaron todos los pasajeros, tren pega la vuelta...");
+        Thread.sleep(5000);
+        trenEnViaje = false;
+        trenListo.signalAll();
+    }
+
+    public void bajarTren() {
+        try {
+            bajarTren.await();
+            lockTren.lock();
+            pasajerosActuales--;
+            System.out.println("GOMONES --- " + Thread.currentThread().getName()
+                    + "se baja del tren. Pasajeros actuales: " + pasajerosActuales);
+            if (pasajerosActuales == 0) {
+                volverTren.signal();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+
+        }
+    }
+
+    public void controlTren() {
         while (true) {
             lockTren.lock();
             try {
@@ -154,4 +216,3 @@ public class Gomones {
         }
     }
 }
-

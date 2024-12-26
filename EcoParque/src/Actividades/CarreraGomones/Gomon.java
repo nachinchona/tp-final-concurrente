@@ -10,11 +10,27 @@ public abstract class Gomon {
     private Random r = new Random();
     private int tiempo = r.nextInt(2000);
 
+    public Gomon(int numeroGomon) {
+        this.numeroGomon = numeroGomon;
+    }
+
     public void añadirVisitante(Visitante visitante) {
         this.primerVisitante = visitante;
     }
 
     public int correr() {
         return tiempo;
+    }
+
+    public Visitante getPrimerVisitante() {
+        return primerVisitante;
+    }
+
+    public int getNumeroGomon() {
+        return numeroGomon;
+    }
+
+    public String toString() {
+        return numeroGomon + "-" + primerVisitante.getName();
     }
 }

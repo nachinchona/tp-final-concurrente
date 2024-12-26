@@ -13,7 +13,7 @@ public class Main {
         Visitante[] visitantes = new Visitante[50];
         for (int i = 0; i < visitantes.length; i++) {
             visitantes[i] = new Visitante("Visitante " + Integer.toString(i), parque);
-            Thread.sleep(r.nextInt(1000));
+            Thread.sleep(r.nextInt(400));
             visitantes[i].start();
         }
     }

@@ -27,5 +27,8 @@ public class Administrador extends Thread {
                 e.printStackTrace();
             }
         }
+        if (!parque.sePuedenRealizarActividades()) {
+            faro.cerrar();
+        }
     }
 }

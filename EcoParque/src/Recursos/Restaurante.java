@@ -22,7 +22,7 @@ public class Restaurante {
     public void entrarRestaurante(Visitante visitante) throws InterruptedException {
         fila.acquire();
         if (!mapa.containsKey(visitante)) {
-            mapa.put(visitante, new Boolean[]{false, false});
+            mapa.put(visitante, new Boolean[] { false, false });
         }
     }
 
@@ -30,9 +30,11 @@ public class Restaurante {
         if (mapa.get(visitante)[0]) {
             System.out.println("RESTAURANTES --- " + visitante.getName() + " ya ha tenido su almuerzo.");
         } else {
-            System.out.println(ANSI_RED + "RESTAURANTES --- " + visitante.getName() + " está almorzando en " + nombre + "." + ANSI_RESET);
+            System.out.println(ANSI_RED + "RESTAURANTES --- " + visitante.getName() + " está almorzando en " + nombre
+                    + "." + ANSI_RESET);
             Thread.sleep(2000);
-            System.out.println(ANSI_GREEN + "RESTAURANTES --- " + visitante.getName() + " ha terminado de almorzar en " + nombre + "." + ANSI_RESET);
+            System.out.println(ANSI_GREEN + "RESTAURANTES --- " + visitante.getName() + " ha terminado de almorzar en "
+                    + nombre + "." + ANSI_RESET);
             mapa.get(visitante)[0] = true;
         }
         fila.release();
@@ -42,9 +44,11 @@ public class Restaurante {
         if (mapa.get(visitante)[1]) {
             System.out.println("RESTAURANTES --- " + visitante.getName() + " ya ha tenido su merienda.");
         } else {
-            System.out.println(ANSI_RED + "RESTAURANTES --- " + visitante.getName() + " está merendando en " + nombre + "." + ANSI_RESET);
+            System.out.println(ANSI_RED + "RESTAURANTES --- " + visitante.getName() + " está merendando en " + nombre
+                    + "." + ANSI_RESET);
             Thread.sleep(2000);
-            System.out.println(ANSI_GREEN + "RESTAURANTES --- " + visitante.getName() + " ha terminado de merendar en " + nombre + "." + ANSI_RESET);
+            System.out.println(ANSI_GREEN + "RESTAURANTES --- " + visitante.getName() + " ha terminado de merendar en "
+                    + nombre + "." + ANSI_RESET);
             mapa.get(visitante)[1] = true;
         }
         fila.release();
@@ -54,4 +58,3 @@ public class Restaurante {
         mapa.clear();
     }
 }
-
