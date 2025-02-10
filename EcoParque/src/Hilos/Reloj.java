@@ -13,13 +13,14 @@ public class Reloj extends Thread {
 
     public void run() {
         // 500 milisegundos equivale a un minuto
-        while (true) {
+        while (parque.sePuedenRealizarActividades()) {
             horario.aumentarTiempo();
             try {
-                Thread.sleep(50);
+                Thread.sleep(300);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+        System.out.println("----- PARQUE CERRADO -----");
     }
 }

@@ -8,7 +8,7 @@ import Hilos.Visitante;
 
 public class FaroMirador {
     private BlockingQueue<Visitante> escalera = new ArrayBlockingQueue<>(10);
-    EcoParque parque;
+    private EcoParque parque;
     private Semaphore tobogan1 = new Semaphore(1, true);
     private Semaphore tobogan2 = new Semaphore(1, true);
     private Semaphore administrador = new Semaphore(0);

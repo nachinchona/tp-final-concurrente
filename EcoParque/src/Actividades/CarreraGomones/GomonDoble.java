@@ -13,6 +13,10 @@ public class GomonDoble extends Gomon {
         super.añadirVisitante(visitante);
     }
 
+    public boolean esPrimerVisitante(Visitante visitante) {
+        return super.esPrimerVisitante(visitante);
+    }
+
     public void añadirCompañero(Visitante visitante) {
         this.segundoVisitante = visitante;
     }
@@ -22,6 +26,10 @@ public class GomonDoble extends Gomon {
     }
 
     public String toString() {
-        return super.toString() + "-" + segundoVisitante.getName();
+        return super.toString() + "-" + (segundoVisitante == null ? "none":segundoVisitante.getName());
+    }
+
+    public void reiniciar() {
+        segundoVisitante = null;
     }
 }

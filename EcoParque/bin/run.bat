@@ -1,0 +1,2 @@
+e:; & 'C:\Program Files\Java\jdk-22\bin\java.exe' '-Dfile.encoding=UTF-8' '-XX:+ShowCodeDetailsInExceptionMessages' '-cp' 'E:\aFacultad\2Segundo año\Programación Concurrente\2024TP-FINAL\tp-final-concurrente\EcoParque\bin' 'Main'
+pause

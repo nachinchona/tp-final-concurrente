@@ -31,13 +31,17 @@ public class Visitante extends Thread {
             int siguienteActividad = r.nextInt(4);
             try {
                 parque.realizarActividad(siguienteActividad, this);
-                quiereIrse = r.nextInt(20) > 18;
-            } catch (InterruptedException e) {
+                /* quiereIrse = r.nextInt(20) > 18; */
+            } catch (InterruptedException | BrokenBarrierException e) {
                 e.printStackTrace();
             }
         }
-        if (quiereIrse) {
-            System.out.println("HASTA PRONTO! --- " + this.getName() + " quiso irse antes de tiempo de EcoParque.");
+        if (!parque.sePuedenRealizarActividades()) {
+            System.out.println("HASTA PRONTO! --- El visitante " + this.getName() + " se retira del parque.");
+        } else {
+            if (quiereIrse) {
+                System.out.println("HASTA PRONTO! --- " + this.getName() + " quiso irse antes de tiempo de EcoParque.");
+            }
         }
         parque.salir();
     }

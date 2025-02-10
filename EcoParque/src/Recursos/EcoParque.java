@@ -19,7 +19,7 @@ public class EcoParque {
     Reloj reloj = new Reloj(interfaz, this);
 
     // actividades e ingreso
-    Ingreso ingreso = new Ingreso(interfaz);
+    Ingreso ingreso = new Ingreso(interfaz, this);
     Tienda tienda = new Tienda();
     NadoDelfines nado = new NadoDelfines();
     FaroMirador faro = new FaroMirador(this);
@@ -50,6 +50,7 @@ public class EcoParque {
             asistenteSnorkel1.start();
             asistenteSnorkel2.start();
             colectivero.start();
+            chofer.start();
             // reloj visual
             interfaz.iniciarInterfaz();    
         }
@@ -92,12 +93,12 @@ public class EcoParque {
     public void hacerCarreraGomones(boolean eleccionTransporte, boolean eleccionGomon, Visitante visitante) throws InterruptedException, BrokenBarrierException {
         // eleccionTransporte true = bicicleta, false = tren
         gomones.elegirTransporte(eleccionTransporte, visitante);
-        gomones.guardarBolso(visitante);
-        gomones.realizarActividad(eleccionGomon, visitante);
-        gomones.guardarBolso(visitante);
         if (!eleccionTransporte) {
             gomones.bajarTren();
         }
+        gomones.guardarBolso(visitante);
+        gomones.realizarActividad(eleccionGomon, visitante);
+        gomones.guardarBolso(visitante);
     }
 
     public void ingresar(boolean eleccion) throws InterruptedException {
@@ -117,9 +118,9 @@ public class EcoParque {
         interfaz.decrementarVisitantes();
     }
 
-    public void realizarActividad(int eleccion, Visitante visitante) throws InterruptedException {
+    public void realizarActividad(int eleccion, Visitante visitante) throws InterruptedException, BrokenBarrierException {
         if (sePuedenRealizarActividades()) {
-            switch (eleccion) {
+            switch (3) {
                 case 0:
                     hacerSnorkel(visitante);
                     break;
@@ -130,7 +131,9 @@ public class EcoParque {
                     irARestaurante(r.nextInt(2), visitante);
                     break;
                 case 3:
-
+                    // es mas probable que entren por tren
+                    // ver qué pasa si no hay gomones dobles/indiv, lo cual puede causar deadlock <<--- no vimos
+                    hacerCarreraGomones(r.nextInt(1,20) > 15, r.nextBoolean(), visitante);
                     break;
                 case 4:
 
