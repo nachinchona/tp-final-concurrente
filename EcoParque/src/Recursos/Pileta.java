@@ -5,12 +5,13 @@ public class Pileta {
     private boolean piletaOcupada = false;
     private int cantidadActual = 0;
 
-    public synchronized void ingresar() {
+    public synchronized boolean ingresar() {
         if (cantidadActual < CAPACIDAD) {
             cantidadActual++;
-        } else {
+        } else if (cantidadActual == CAPACIDAD) {
             piletaOcupada = true;
         }
+        return piletaOcupada;
     }
 
     public synchronized void salir() {

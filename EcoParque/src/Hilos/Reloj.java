@@ -20,6 +20,12 @@ public class Reloj extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            if (horario.getHora() % 2 == 0 && horario.getMinuto() == 0) {
+                parque.getNadoDelfines().notifyAll();
+            }
+            if (horario.getHora() % 2 == 0 && horario.getMinuto() == 4) {
+                parque.getNadoDelfines().notifyAll();
+            }
         }
         System.out.println("----- PARQUE CERRADO -----");
     }
