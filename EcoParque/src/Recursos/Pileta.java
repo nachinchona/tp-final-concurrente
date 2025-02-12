@@ -14,11 +14,12 @@ public class Pileta {
         return piletaOcupada;
     }
 
-    public synchronized void salir() {
+    public synchronized boolean salir() {
         cantidadActual--;
         if (cantidadActual == 0) {
             piletaOcupada = false;
         }
+        return piletaOcupada;
     }
 
     public boolean estaOcupada() {

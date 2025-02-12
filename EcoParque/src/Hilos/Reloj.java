@@ -24,7 +24,7 @@ public class Reloj extends Thread {
                 parque.getNadoDelfines().notifyAll();
             }
             if (horario.getHora() % 2 == 0 && horario.getMinuto() == 4) {
-                parque.getNadoDelfines().notifyAll();
+                parque.getNadoDelfines().notify();
             }
         }
         System.out.println("----- PARQUE CERRADO -----");
