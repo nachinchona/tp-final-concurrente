@@ -10,7 +10,7 @@ public class Main {
 
         Random r = new Random();
 
-        Visitante[] visitantes = new Visitante[50];
+        Visitante[] visitantes = new Visitante[100];
         for (int i = 0; i < visitantes.length; i++) {
             visitantes[i] = new Visitante("Visitante " + Integer.toString(i), parque);
             Thread.sleep(r.nextInt(400));

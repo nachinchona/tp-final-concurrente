@@ -17,7 +17,6 @@ public class Cajero extends Thread {
         while (parque.sePuedenRealizarActividades()) {
             try {
                 tienda.atender();
-                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

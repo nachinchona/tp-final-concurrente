@@ -8,12 +8,19 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class NadoDelfines {
     private final Pileta[] piletas = new Pileta[4];
-    private final Lock lockPileta = new ReentrantLock(); // Lock para manejar pasajeros
+    private final Lock lockPileta = new ReentrantLock();
     private final Condition esperarAviso = lockPileta.newCondition();
+    private final Condition esperarHorario = lockPileta.newCondition();
+    private final Condition esperarPiletasVacias = lockPileta.newCondition();
+    private final Condition salirPileta = lockPileta.newCondition();
     private int piletasOcupadas = 0;
+    private int piletasVacias = piletas.length;
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_CYAN = "\u001B[46m";
 
     private boolean sePuedeNadar = false;
-
 
     public NadoDelfines() {
         for (int i = 0; i < piletas.length; i++) {
@@ -21,58 +28,89 @@ public class NadoDelfines {
         }
     }
 
-    public synchronized Pileta buscarPileta() {
+    public Pileta buscarPileta() {
+        lockPileta.lock();
         Pileta pileta = null;
         int i = 0;
         boolean encontrado = false;
-        while (!encontrado && !sePuedeNadar) {
+        while (!encontrado && !sePuedeNadar && i < piletas.length) {
             if (!piletas[i].estaOcupada()) {
                 pileta = piletas[i];
                 boolean rta = pileta.ingresar();
                 if (rta) {
                     piletasOcupadas++;
+                    piletasVacias--;
                 }
                 encontrado = true;
             }
             i++;
         }
+        if (encontrado) {
+            System.out.println(ANSI_RED + "NADO DELFINES --- " + Thread.currentThread().getName() + " encontró pileta." + ANSI_RESET);
+        }
+        lockPileta.unlock();
         return pileta;
     }
-    public synchronized void salirPileta(Pileta pileta) throws InterruptedException {
+
+    public void salirPileta(Pileta pileta) throws InterruptedException {
+        lockPileta.lock();
         if (!pileta.salir()) {
             piletasOcupadas--;
-            if (piletasOcupadas == 0 && sePuedeNadar) {
-                this.notify();
+            piletasVacias++;
+            if (piletasVacias == piletas.length) {
+                esperarPiletasVacias.signal();
             }
         }
-    }
-    public synchronized void nadar() throws InterruptedException {
-        esperarAviso.await();
-        if (sePuedeNadar) {
-            //Solo si se cumple el cupo
-            System.out.println(Thread.currentThread().getName() + " está nadando");
-            esperarAviso.await();
-        } else {
-            //Si no se cumple el cupo se van
-            System.out.println("CHAO ME VOY");
-        }
+        lockPileta.unlock();
     }
 
-    public synchronized void esperarPiletasLlenas() throws InterruptedException {
-        this.wait();
-        //Espera hasta el horario de la actividad
-        //Una vez que llega el horario avisa al resto que pueden nadar
+    public void nadar() throws InterruptedException {
+        lockPileta.lock();
+        esperarAviso.await();
+        if (sePuedeNadar) {
+            // Solo si se cumple el cupo
+            salirPileta.await();
+        }
+        lockPileta.unlock();
+    }
+
+    public void avisarControl() {
+        lockPileta.lock();
+        esperarHorario.signal();
+        lockPileta.unlock();
+    }
+
+    public boolean getSePuedeNadar() {
+        return sePuedeNadar;
+    }
+
+    public void esperarPiletasLlenas() throws InterruptedException {
+        lockPileta.lock();
+        esperarHorario.await();
+        // Espera hasta el horario de la actividad
+        // Una vez que llega el horario avisa al resto que pueden nadar
         if (piletasOcupadas >= 3) {
             sePuedeNadar = true;
             esperarAviso.signalAll();
-            System.out.println("ARRANCA LA ACTIVIDAD LOCO");
-            //Espera a que llegue el fin de la actividad
-            this.wait();
-            System.out.println("SE TERMINA LA ACTIVIDAD, SALGAN");
+            System.out.println(ANSI_RED + "NADO DELFINES --- Comienza la actividad." + ANSI_RESET);
+            // Espera a que llegue el fin de la actividad
+            esperarHorario.await();
+            salirPileta.signalAll();
+            System.out.println(ANSI_GREEN + "NADO DELFINES --- Termina la actividad." + ANSI_RESET);
         } else {
-            System.out.println("NO SE ALCANZO EL CUPO DE PILETAS, VAYANSE");
+            System.out.println("NADO DELFINES --- Cupo no alcanzado, no comienza la actividad.");
+            esperarHorario.await();
         }
-        esperarAviso.signalAll();
+        lockPileta.unlock();
+    }
 
+    public void esperarPiletasVacias() throws InterruptedException {
+        lockPileta.lock();
+        if (piletasOcupadas >= 3) {
+            esperarPiletasVacias.await();
+            System.out.println("NADO DELFINES --- Piletas vacías, pueden ingresar los visitantes.");
+            sePuedeNadar = false;
+        }
+        lockPileta.unlock();
     }
 }

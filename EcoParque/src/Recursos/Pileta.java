@@ -5,19 +5,23 @@ public class Pileta {
     private boolean piletaOcupada = false;
     private int cantidadActual = 0;
 
-    public synchronized boolean ingresar() {
+    public boolean ingresar() {
         if (cantidadActual < CAPACIDAD) {
             cantidadActual++;
-        } else if (cantidadActual == CAPACIDAD) {
-            piletaOcupada = true;
+            if (cantidadActual == CAPACIDAD) {
+                piletaOcupada = true;
+            }
         }
         return piletaOcupada;
     }
 
-    public synchronized boolean salir() {
-        cantidadActual--;
-        if (cantidadActual == 0) {
-            piletaOcupada = false;
+    public boolean salir() {
+        if (cantidadActual > 0) {
+            cantidadActual--;
+            System.out.println("insanoOOO");
+            if (cantidadActual == 0) {
+                piletaOcupada = false;
+            }
         }
         return piletaOcupada;
     }

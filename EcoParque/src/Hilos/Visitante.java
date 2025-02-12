@@ -31,7 +31,7 @@ public class Visitante extends Thread {
             int siguienteActividad = r.nextInt(4);
             try {
                 parque.realizarActividad(siguienteActividad, this);
-                /* quiereIrse = r.nextInt(20) > 18; */
+                quiereIrse = r.nextInt(100) > 98;
             } catch (InterruptedException | BrokenBarrierException e) {
                 e.printStackTrace();
             }

@@ -51,11 +51,6 @@ public class Gomones {
     private int posiciones = 1;
     private boolean enCarrera = false;
     private String gomonesACorrer = "GOMONES LISTOS \n";
-    private int cantEsperandoCarrera = 0;
-    private int cantInicioCarrera = 0;
-    private int cantEsperandoCompa = 0;
-    private int cantEsperaGomonInd = 0;
-    private int cantEsperaGomonDoble = 0;
 
     public Gomones() {
         for (int i = 0; i < CANTIDAD_GOMONES_INDIVIDUALES; i++) {
@@ -88,7 +83,6 @@ public class Gomones {
             } else {
                 while (disponiblesDobles.isEmpty()) {
                     esperaGomonDoble.await();
-                    cantEsperaGomonDoble--;
                 }
                 miGomon = disponiblesDobles.take();
                 miGomon.añadirVisitante(visitante);
@@ -96,7 +90,6 @@ public class Gomones {
                 System.out.println("GOMONES --- " + Thread.currentThread().getName() + " espera por un compañero.");
                 while (((GomonDoble) miGomon).getSegundoVisitante() == null) {
                     esperandoCompañero.await();
-                    cantEsperandoCompa--;
                 }
             }
         } else {
@@ -107,7 +100,6 @@ public class Gomones {
             miGomon.añadirVisitante(visitante);
             while (gomonesListos >= H) {
                 esperandoCarrera.await();
-                cantEsperandoCarrera--;
             }
             gomonesListos++;
             System.out.println("GOMONES --- " + Thread.currentThread().getName() + " obtiene un gomon individual.");

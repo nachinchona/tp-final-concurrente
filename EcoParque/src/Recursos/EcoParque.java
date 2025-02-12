@@ -9,6 +9,7 @@ import Actividades.CarreraGomones.Chofer;
 import Actividades.FaroMiradorTobogan.Administrador;
 import Actividades.Ingreso.Colectivero;
 import Actividades.Ingreso.Ingreso;
+import Actividades.NadoDelfines.Control;
 import Actividades.NadoDelfines.NadoDelfines;
 import Actividades.Snorkel.Asistente;
 import Actividades.Tienda.Cajero;
@@ -35,6 +36,7 @@ public class EcoParque {
     Administrador administradorFaro = new Administrador(this);
     Colectivero colectivero = new Colectivero(this);
     Chofer chofer = new Chofer(this);
+    Control controlNado = new Control(this);
 
     public EcoParque() {
         restaurantes[0] = new Restaurante("Restaurante");
@@ -51,6 +53,7 @@ public class EcoParque {
             asistenteSnorkel2.start();
             colectivero.start();
             chofer.start();
+            controlNado.start();
             // reloj visual
             interfaz.iniciarInterfaz();    
         }
@@ -101,6 +104,18 @@ public class EcoParque {
         gomones.guardarBolso(visitante);
     }
 
+    public void nadarConDelfines(Visitante visitante) throws InterruptedException {
+        Pileta pileta = nado.buscarPileta();
+        if (pileta != null) {
+            nado.nadar();
+            nado.salirPileta(pileta);
+        }
+    }
+
+    public void comprarSouvenir(Visitante visitante) throws InterruptedException {
+        tienda.comprar(visitante);
+    }
+
     public void ingresar(boolean eleccion) throws InterruptedException {
         if (eleccion) {
             // por tour
@@ -120,7 +135,7 @@ public class EcoParque {
 
     public void realizarActividad(int eleccion, Visitante visitante) throws InterruptedException, BrokenBarrierException {
         if (sePuedenRealizarActividades()) {
-            switch (3) {
+            switch (r.nextInt(0,5)) {
                 case 0:
                     hacerSnorkel(visitante);
                     break;
@@ -136,16 +151,15 @@ public class EcoParque {
                     hacerCarreraGomones(r.nextInt(1,20) > 15, r.nextBoolean(), visitante);
                     break;
                 case 4:
-
+                    nadarConDelfines(visitante);
+                    break;
+                case 5:
+                    comprarSouvenir(visitante);
                     break;
                 default:
                     break;
             }
         }
-    }
-
-    public void comprarEnTienda() throws InterruptedException {
-        tienda.comprar();
     }
 
     public boolean estaAbierto() {

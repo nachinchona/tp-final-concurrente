@@ -17,6 +17,9 @@ public class Control extends Thread {
         while(parque.sePuedenRealizarActividades()) {
             try {
                 nadoDelfines.esperarPiletasLlenas();
+                if (nadoDelfines.getSePuedeNadar()) {
+                    nadoDelfines.esperarPiletasVacias();
+                }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

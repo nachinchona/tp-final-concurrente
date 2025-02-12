@@ -20,11 +20,13 @@ public class Reloj extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            if (horario.getHora() % 2 == 0 && horario.getMinuto() == 0) {
-                parque.getNadoDelfines().notifyAll();
+            if (horario.getHora() != 18 && horario.getHora() % 2 == 0 && horario.getMinuto() == 0) {
+                System.out.println("------------------ avise arranque");
+                parque.getNadoDelfines().avisarControl();
             }
-            if (horario.getHora() % 2 == 0 && horario.getMinuto() == 4) {
-                parque.getNadoDelfines().notify();
+            if (horario.getHora() % 2 == 0 && horario.getMinuto() == 45) {
+                System.out.println("------------------ avise q termina");
+                parque.getNadoDelfines().avisarControl();
             }
         }
         System.out.println("----- PARQUE CERRADO -----");
