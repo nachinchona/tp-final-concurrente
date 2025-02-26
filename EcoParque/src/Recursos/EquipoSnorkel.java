@@ -22,7 +22,7 @@ public class EquipoSnorkel {
         fila.add(visitante);
         System.out.println(ANSI_RED + "SNORKEL --- " + Thread.currentThread().getName() + " está haciendo fila para hacer snorkel." + ANSI_RESET);
         this.notifyAll();
-        while ((!fila.peek().equals(visitante) || equiposDisponibles == 0) && parque.sePuedenRealizarActividades()) {
+        while ((!fila.isEmpty() && (!fila.peek().equals(visitante)) || equiposDisponibles == 0) && parque.sePuedenRealizarActividades()) {
             this.wait();
         }
         fila.remove(visitante);

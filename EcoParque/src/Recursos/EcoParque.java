@@ -26,7 +26,7 @@ public class EcoParque {
     FaroMirador faro = new FaroMirador(this);
     EquipoSnorkel snorkel = new EquipoSnorkel(this);
     Restaurante[] restaurantes = new Restaurante[2];
-    Gomones gomones = new Gomones();
+    Gomones gomones = new Gomones(this);
 
     // empleados y controles
     Cajero cajero1 = new Cajero(this);
@@ -55,7 +55,7 @@ public class EcoParque {
             chofer.start();
             controlNado.start();
             // reloj visual
-            interfaz.iniciarInterfaz();    
+            interfaz.iniciarInterfaz();
         }
     }
 
@@ -66,9 +66,9 @@ public class EcoParque {
         if (rta) {
             faro.avisarAdministrador();
             boolean toboganAsignado = faro.esperarAviso();
-            faro.usarTobogan(toboganAsignado);
+            boolean sigue = faro.usarTobogan(toboganAsignado);
             Thread.sleep(r.nextInt(2000, 4000));
-            faro.liberarTobogan(toboganAsignado);
+            if (sigue) { faro.liberarTobogan(toboganAsignado); }
         }
     }
 
@@ -93,15 +93,17 @@ public class EcoParque {
         }
     }
 
-    public void hacerCarreraGomones(boolean eleccionTransporte, boolean eleccionGomon, Visitante visitante) throws InterruptedException, BrokenBarrierException {
+    public void hacerCarreraGomones(boolean eleccionTransporte, boolean eleccionGomon, Visitante visitante)
+            throws InterruptedException, BrokenBarrierException {
         // eleccionTransporte true = bicicleta, false = tren
-        gomones.elegirTransporte(eleccionTransporte, visitante);
-        if (!eleccionTransporte) {
+        boolean seSubio = gomones.elegirTransporte(eleccionTransporte, visitante);
+        if (!eleccionTransporte && seSubio) {
             gomones.bajarTren();
         }
         gomones.guardarBolso(visitante);
-        gomones.realizarActividad(eleccionGomon, visitante);
-        gomones.guardarBolso(visitante);
+        gomones.realizarActividad2(eleccionGomon, visitante);
+        System.out.println("ALGOGOGOOGOGGO");
+        gomones.buscarBolso(visitante);
     }
 
     public void nadarConDelfines(Visitante visitante) throws InterruptedException {
@@ -120,7 +122,7 @@ public class EcoParque {
         if (eleccion) {
             // por tour
             ingreso.ingresarPorTour();
-            Thread.sleep(r.nextInt(500,1000));
+            Thread.sleep(r.nextInt(500, 1000));
             ingreso.entrarMolinete();
         } else {
             // particular
@@ -133,9 +135,11 @@ public class EcoParque {
         interfaz.decrementarVisitantes();
     }
 
-    public void realizarActividad(int eleccion, Visitante visitante) throws InterruptedException, BrokenBarrierException {
+    public void realizarActividad(int eleccion, Visitante visitante)
+            throws InterruptedException, BrokenBarrierException {
         if (sePuedenRealizarActividades()) {
-            switch (r.nextInt(0,5)) {
+            /* switch (r.nextInt(0,5)) { */
+            switch (3) {
                 case 0:
                     hacerSnorkel(visitante);
                     break;
@@ -147,8 +151,9 @@ public class EcoParque {
                     break;
                 case 3:
                     // es mas probable que entren por tren
-                    // ver qué pasa si no hay gomones dobles/indiv, lo cual puede causar deadlock <<--- no vimos
-                    hacerCarreraGomones(r.nextInt(1,20) > 15, r.nextBoolean(), visitante);
+                    // ver qué pasa si no hay gomones dobles/indiv, lo cual puede causar deadlock
+                    // <<--- no vimos
+                    hacerCarreraGomones(r.nextInt(1, 20) > 15, r.nextBoolean(), visitante);
                     break;
                 case 4:
                     nadarConDelfines(visitante);

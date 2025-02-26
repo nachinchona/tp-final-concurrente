@@ -13,13 +13,9 @@ public class Chofer extends Thread {
     }
 
     public void run() {
+        System.out.println("GOMONES --- Chofer listo.");
         while (parque.sePuedenRealizarActividades()) {
             gomones.controlTren();
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

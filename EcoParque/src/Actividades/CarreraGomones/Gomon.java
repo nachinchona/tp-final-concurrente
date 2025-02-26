@@ -31,7 +31,7 @@ public abstract class Gomon {
     }
 
     public String toString() {
-        return numeroGomon + "-" + (primerVisitante == null ? "":primerVisitante.getName());
+        return numeroGomon + "-" + (primerVisitante == null ? "none":primerVisitante.getName());
     }
 
     public boolean esPrimerVisitante(Visitante visitante) {

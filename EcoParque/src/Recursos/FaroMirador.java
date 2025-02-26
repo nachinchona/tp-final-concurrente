@@ -9,6 +9,7 @@ import Hilos.Visitante;
 public class FaroMirador {
     private BlockingQueue<Visitante> escalera = new ArrayBlockingQueue<>(10);
     private EcoParque parque;
+    private boolean abierto = true;
     private Semaphore tobogan1 = new Semaphore(1, true);
     private Semaphore tobogan2 = new Semaphore(1, true);
     private Semaphore administrador = new Semaphore(0);
@@ -40,14 +41,21 @@ public class FaroMirador {
         asignado = valor;
     }
 
-    public void usarTobogan(boolean valor) throws InterruptedException {
+    public boolean usarTobogan(boolean valor) throws InterruptedException {
         if (valor) {
             tobogan1.acquire();
         } else {
             tobogan2.acquire();
         }
-        System.out.println(
-                "FARO MIRADOR --- " + Thread.currentThread().getName() + " se subió al tobogan " + (valor ? "1" : "2"));
+        if (abierto) {
+            System.out.println(
+                "FARO MIRADOR --- " + Thread.currentThread().getName() + " se subió al tobogán " + (valor ? "1" : "2"));
+        } else {
+            System.out.println(
+                "FARO MIRADOR --- " + Thread.currentThread().getName() + " se bajó del tobogán porque se cerró el parque.");
+        }
+
+        return abierto;
     }
 
     public void liberarTobogan(boolean valor) {
@@ -81,6 +89,9 @@ public class FaroMirador {
     }
 
     public void cerrar() {
+        abierto = false;
         escalera.clear();
+        tobogan1.release(100);
+        tobogan2.release(100);
     }
 }

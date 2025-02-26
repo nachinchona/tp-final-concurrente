@@ -16,6 +16,7 @@ public class Visitante extends Thread {
 
     public void run() {
         Random r = new Random();
+
         if (parque.estaAbierto()) {
             try {
                 int random = r.nextInt(20);
@@ -26,16 +27,18 @@ public class Visitante extends Thread {
         } else {
             System.out.println("CERRADO --- EcoParque cerró sus puertas. Vuelva mañana a las 9:00 am!");
         }
+
         boolean quiereIrse = false; 
         while (parque.sePuedenRealizarActividades() && !quiereIrse) {
             int siguienteActividad = r.nextInt(4);
             try {
                 parque.realizarActividad(siguienteActividad, this);
-                quiereIrse = r.nextInt(100) > 98;
+                quiereIrse = r.nextInt(125) > 123;
             } catch (InterruptedException | BrokenBarrierException e) {
                 e.printStackTrace();
             }
         }
+        
         if (!parque.sePuedenRealizarActividades()) {
             System.out.println("HASTA PRONTO! --- El visitante " + this.getName() + " se retira del parque.");
         } else {

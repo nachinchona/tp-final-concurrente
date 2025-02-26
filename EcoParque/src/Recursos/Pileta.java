@@ -18,7 +18,6 @@ public class Pileta {
     public boolean salir() {
         if (cantidadActual > 0) {
             cantidadActual--;
-            System.out.println("insanoOOO");
             if (cantidadActual == 0) {
                 piletaOcupada = false;
             }
