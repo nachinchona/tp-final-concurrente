@@ -8,7 +8,7 @@ public abstract class Gomon {
     private int numeroGomon;
     private Visitante primerVisitante;
     private Random r = new Random();
-    private int tiempo = r.nextInt(1000,2000);
+    private int tiempo = r.nextInt(1000,3000);
 
     public Gomon(int numeroGomon) {
         this.numeroGomon = numeroGomon;

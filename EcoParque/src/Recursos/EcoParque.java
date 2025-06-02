@@ -101,8 +101,7 @@ public class EcoParque {
             gomones.bajarTren();
         }
         gomones.guardarBolso(visitante);
-        gomones.realizarActividad2(eleccionGomon, visitante);
-        System.out.println("ALGOGOGOOGOGGO");
+        gomones.realizarActividad(eleccionGomon, visitante);
         gomones.buscarBolso(visitante);
     }
 
@@ -167,6 +166,10 @@ public class EcoParque {
         }
     }
 
+    public void cerrar() {
+        gomones.cerrar();
+    }
+
     public boolean estaAbierto() {
         int hora = interfaz.getHora();
         return 9 <= hora && hora < 17;
@@ -174,7 +177,7 @@ public class EcoParque {
 
     public boolean sePuedenRealizarActividades() {
         int hora = interfaz.getHora();
-        return 9 <= hora && hora < 18;
+        return 9 <= hora && hora < 17 && interfaz.getMinuto() < 30;
     }
 
     public EquipoSnorkel getEquipoSnorkel() {

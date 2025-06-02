@@ -11,7 +11,7 @@ public class Reloj extends Thread {
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_CYAN = "\u001B[46m";
+    public static final String ANSI_PURPLE = "\033[0;35m";
 
     public Reloj(Interfaz horario, EcoParque parque) {
         this.horario = horario;
@@ -19,7 +19,7 @@ public class Reloj extends Thread {
     }
 
     public void run() {
-        // 500 milisegundos equivale a un minuto
+        // 120 milisegundos equivale a un minuto
         while (true) {
             horario.aumentarTiempo();
             try {
@@ -33,14 +33,18 @@ public class Reloj extends Thread {
             if (horario.getHora() % 2 == 0 && horario.getMinuto() == 45) {
                 parque.getNadoDelfines().avisarControl();
             }
-            if (horario.getHora() == 18 && horario.getMinuto() == 00) {
-                System.out.println(ANSI_CYAN + "------------------------------ PARQUE CERRADO ------------------------------" + ANSI_RESET);
-                parque.getGomones().cerrar();
+            if (horario.getHora() == 17 && horario.getMinuto() == 30) {
+                System.out.println(ANSI_PURPLE + "------------------------------ PARQUE CERRADO ------------------------------" + ANSI_RESET);
+                parque.cerrar();
+            }
+            if (horario.getHora() > 18 && horario.getMinuto() == 00) {
+                System.out.println("==============================================");
+                parque.getGomones().imprimirEstado();
+                System.out.println("==============================================");
             }
             if (horario.getHora() > 20 && horario.getMinuto() == 00) {
-                /* Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-                System.out.println(threadSet); */
-                parque.getGomones().imprimirEstado();
+                Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+                System.out.println(threadSet);
             }
         }
         

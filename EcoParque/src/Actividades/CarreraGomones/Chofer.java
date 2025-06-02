@@ -14,7 +14,7 @@ public class Chofer extends Thread {
 
     public void run() {
         System.out.println("GOMONES --- Chofer listo.");
-        while (parque.sePuedenRealizarActividades()) {
+        while (true) {
             gomones.controlTren();
         }
     }

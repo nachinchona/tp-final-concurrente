@@ -6,6 +6,7 @@ import Actividades.CarreraGomones.GomonIndividual;
 import Hilos.Visitante;
 
 import java.util.HashMap;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -54,12 +55,20 @@ public class Gomones {
     private BlockingQueue<GomonIndividual> disponiblesIndividuales = new LinkedBlockingQueue<>();
     private BlockingQueue<GomonDoble> disponiblesDobles = new LinkedBlockingQueue<>();
     private BlockingQueue<GomonDoble> esperandoDobles = new LinkedBlockingQueue<>();
+    private Queue<Gomon> gomonesListosQ = new ConcurrentLinkedQueue<>();
 
     private int gomonesListos = 0;
     private int bolsoActual = 0;
     private int posiciones = 1;
     private boolean enCarrera = false;
     private String gomonesACorrer = "GOMONES LISTOS \n";
+    private CyclicBarrier inicioCarreraCL = new CyclicBarrier(H, () -> {
+        System.out.println("GOMONES LISTOS \n");
+        for (Gomon gomon : gomonesListosQ) {
+            System.out.println(gomon.toString());
+        }
+        enCarrera = true;
+    });
 
     private EcoParque parque;
 
@@ -71,280 +80,6 @@ public class Gomones {
         for (int i = CANTIDAD_GOMONES_INDIVIDUALES; i < CANTIDAD_GOMONES_DOBLES + CANTIDAD_GOMONES_INDIVIDUALES; i++) {
             disponiblesIndividuales.add(new GomonIndividual(i + 1));
         }
-    }
-
-    // cambie creo donde se actualizan los gomonesListos
-    // igual se ve en git q digo juuuuuuua
-
-    public Gomon obtenerGomonDoble(Gomon miGomon, Visitante visitante) throws InterruptedException {
-        System.out.println("GOMONES --- " + Thread.currentThread().getName() + " obtiene un gomon doble.");
-        if (!esperandoDobles.isEmpty()) {
-            miGomon = esperandoDobles.take();
-            ((GomonDoble) miGomon).añadirCompañero(visitante);
-            while (gomonesListos >= H) {
-                esperandoCarrera.await();
-            }
-            gomonesListos++;
-            gomonesACorrer += miGomon.toString() + "\n";
-            esperandoCompañero.signalAll();
-        } else {
-            while (disponiblesDobles.isEmpty()) {
-                esperaGomonDoble.await();
-            }
-            miGomon = disponiblesDobles.take();
-            miGomon.añadirVisitante(visitante);
-            esperandoDobles.add((GomonDoble) miGomon);
-            System.out.println("GOMONES --- " + Thread.currentThread().getName() + " espera por un compañero.");
-            while (((GomonDoble) miGomon).getSegundoVisitante() == null) {
-                esperandoCompañero.await();
-            }
-        }
-        return miGomon;
-    }
-
-    public Gomon obtenerGomonIndiv(Gomon miGomon, Visitante visitante) throws InterruptedException {
-        while (disponiblesIndividuales.isEmpty()) {
-            esperaGomonInd.await();
-        }
-        miGomon = disponiblesIndividuales.take();
-        miGomon.añadirVisitante(visitante);
-        while (gomonesListos >= H) {
-            esperandoCarrera.await();
-        }
-        gomonesListos++;
-        System.out.println("GOMONES --- " + Thread.currentThread().getName() + " obtiene un gomon individual.");
-        gomonesACorrer += miGomon.toString() + "\n";
-        return miGomon;
-    }
-
-    public void terminarCarrera(Gomon miGomon, Visitante visitante) {
-        if (miGomon.esPrimerVisitante(visitante)) {
-            switch (posiciones) {
-                case 1:
-                    System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
-                            + " salió primero en la carrera!" + ANSI_RESET);
-                    posiciones++;
-                    break;
-                case 2:
-                    System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
-                            + " salió segundo en la carrera!" + ANSI_RESET);
-                    posiciones++;
-                    break;
-                case 3:
-                    System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
-                            + " salió tercero en la carrera!" + ANSI_RESET);
-                    posiciones++;
-                    break;
-                case 5:
-                    System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString() + " terminó la carrera."
-                            + ANSI_RESET);
-                    posiciones = 1;
-                    gomonesListos = 0;
-                    enCarrera = false;
-                    esperandoCarrera.signalAll();
-                    break;
-                default:
-                    System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString() + " terminó la carrera."
-                            + ANSI_RESET);
-                    posiciones++;
-                    break;
-            }
-        }
-    }
-
-    public void devolverGomon(Gomon miGomon, boolean usaGomonDoble) throws InterruptedException {
-        if (usaGomonDoble) {
-            disponiblesDobles.put((GomonDoble) miGomon);
-            ((GomonDoble) miGomon).reiniciar();
-            esperaGomonDoble.signalAll();
-        } else {
-            disponiblesIndividuales.put((GomonIndividual) miGomon);
-            esperaGomonInd.signalAll();
-        }
-    }
-
-    public void esperarInicioCarrera() throws InterruptedException {
-        // Ya con gomon listo, espera a que haya H gomones listos. Si los hay, comienza
-        // la carrera
-        if (gomonesListos == H) {
-            enCarrera = true;
-            inicioCarrera.signalAll();
-            if (!gomonesACorrer.equals("GOMONES LISTOS \n")) {
-                System.out.println(gomonesACorrer);
-                gomonesACorrer = "GOMONES LISTOS \n";
-            }
-        } else {
-            while (!enCarrera) {
-                esperandoCarrera.signalAll();
-                inicioCarrera.await();
-            }
-        }
-
-        System.out.println("GOMONES --- " + Thread.currentThread().getName() + " inicia la carrera.");
-    }
-
-    public void realizarActividad(boolean usaGomonDoble, Visitante visitante)
-            throws InterruptedException, BrokenBarrierException {
-        // Obtener un gomon
-        lockCarrera.lock();
-        Gomon miGomon = null;
-
-        if (usaGomonDoble) {
-            miGomon = obtenerGomonDoble(miGomon, visitante);
-        } else {
-            miGomon = obtenerGomonIndiv(miGomon, visitante);
-        }
-
-        esperarInicioCarrera();
-        lockCarrera.unlock();
-
-        Thread.sleep(miGomon.correr());
-
-        lockCarrera.lock();
-        terminarCarrera(miGomon, visitante);
-        devolverGomon(miGomon, usaGomonDoble);
-        lockCarrera.unlock();
-    }
-
-    public void realizarActividad2(boolean usaGomonDoble, Visitante visitante)
-            throws InterruptedException, BrokenBarrierException {
-        // Obtener un gomon
-        lockCarrera.lock();
-        Gomon miGomon;
-        if (usaGomonDoble) {
-            System.out.println("GOMONES --- " + Thread.currentThread().getName() + " obtiene un gomon doble.");
-            if (!esperandoDobles.isEmpty()) {
-                miGomon = esperandoDobles.take();
-                ((GomonDoble) miGomon).añadirCompañero(visitante);
-                esperandoCar++;
-                while (gomonesListos >= H && abierto) {
-                    esperandoCarrera.await(10000, TimeUnit.SECONDS);
-                    if (!abierto) {
-                        return;
-                    }
-                }
-                esperandoCar--;
-                gomonesListos++;
-                gomonesACorrer += miGomon.toString() + "\n";
-                esperandoCompañero.signalAll();
-            } else {
-                esperandoGomonDoble++;
-                while (disponiblesDobles.isEmpty() && abierto) {
-                    esperaGomonDoble.await(10000, TimeUnit.SECONDS);
-                    if (!abierto) {
-                        return;
-                    }
-                }
-                esperandoGomonDoble--;
-                miGomon = disponiblesDobles.take();
-                miGomon.añadirVisitante(visitante);
-                esperandoDobles.add((GomonDoble) miGomon);
-                System.out.println("GOMONES --- " + Thread.currentThread().getName() + " espera por un compañero.");
-                esperandoCom++;
-                while (((GomonDoble) miGomon).getSegundoVisitante() == null && abierto) {
-                    esperandoCompañero.await(10000, TimeUnit.SECONDS);
-                    if (!abierto) {
-                        return;
-                    }
-                }
-                esperandoCom--;
-            }
-        } else {
-            esperandoGomonInd++;
-            while (disponiblesIndividuales.isEmpty() && abierto) {
-                esperaGomonInd.await(10000, TimeUnit.SECONDS);
-                if (!abierto) {
-                    return;
-                }
-            }
-            esperandoGomonInd--;
-            miGomon = disponiblesIndividuales.take();
-            miGomon.añadirVisitante(visitante);
-            esperandoCar++;
-            while (gomonesListos >= H && abierto) {
-                esperandoCarrera.await(10000, TimeUnit.SECONDS);
-                if (!abierto) {
-                    return;
-                }
-            }
-            esperandoCar--;
-            gomonesListos++;
-            System.out.println("GOMONES --- " + Thread.currentThread().getName() + " obtiene un gomon individual.");
-            gomonesACorrer += miGomon.toString() + "\n";
-        }
-
-        // Ya con gomon listo, espera a que haya H gomones listos. Si los hay, comienza
-        // la carrera
-        if (gomonesListos == H) {
-            enCarrera = true;
-            inicioCarrera.signalAll();
-            if (!gomonesACorrer.equals("GOMONES LISTOS \n")) {
-                System.out.println(gomonesACorrer);
-                gomonesACorrer = "GOMONES LISTOS \n";
-            }
-        } else {
-            inicioCar++;
-            while (!enCarrera && abierto) {
-                esperandoCarrera.signalAll();
-                inicioCarrera.await(10000, TimeUnit.SECONDS);
-                System.out.println(
-                        abierto + "                ME FUIIIIIIIIIIFASDGSDFGASFGSFDGFEDBFDBREEWRIIIIIIIIIIIIIIIII");
-                if (!abierto) {
-                    System.out.println("ME FUIIIIIIIIIIFASDGSDFGASFGSFDGFEDBFDBREEWRIIIIIIIIIIIIIIIII");
-                    return;
-                }
-            }
-            inicioCar--;
-        }
-
-        System.out.println("GOMONES --- " + Thread.currentThread().getName() + " inicia la carrera.");
-        lockCarrera.unlock();
-        Thread.sleep(miGomon.correr());
-        lockCarrera.lock();
-        if (miGomon.esPrimerVisitante(visitante)) {
-            switch (posiciones) {
-                case 1:
-                    System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
-                            + " salió primero en la carrera!" + ANSI_RESET);
-                    posiciones++;
-                    break;
-                case 2:
-                    System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
-                            + " salió segundo en la carrera!" + ANSI_RESET);
-                    posiciones++;
-                    break;
-                case 3:
-                    System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
-                            + " salió tercero en la carrera!" + ANSI_RESET);
-                    posiciones++;
-                    break;
-                case 5:
-                    System.out.println(
-                            ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString() + " terminó la carrera."
-                                    + ANSI_RESET);
-                    posiciones = 1;
-                    gomonesListos = 0;
-                    enCarrera = false;
-                    esperandoCarrera.signalAll();
-                    break;
-                default:
-                    System.out.println(
-                            ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString() + " terminó la carrera."
-                                    + ANSI_RESET);
-                    posiciones++;
-                    break;
-            }
-
-            if (usaGomonDoble) {
-                disponiblesDobles.put((GomonDoble) miGomon);
-                esperaGomonDoble.signalAll();
-                ((GomonDoble) miGomon).reiniciar();
-            } else {
-                disponiblesIndividuales.put((GomonIndividual) miGomon);
-                esperaGomonInd.signalAll();
-            }
-        }
-        lockCarrera.unlock();
     }
 
     public boolean elegirTransporte(boolean eleccionTransporte, Visitante visitante) throws InterruptedException {
@@ -383,19 +118,24 @@ public class Gomones {
         boolean seSubio = false;
         lockTren.lock();
         try {
-            if (!trenEnViaje && pasajerosActuales < CAPACIDAD_TREN) {
-                seSubio = true;
-                // Subir al tren
-                pasajerosActuales++;
-                System.out.println(
-                        ANSI_RED + "GOMONES --- " + Thread.currentThread().getName()
-                                + " abordó el tren. Pasajeros actuales: "
-                                + pasajerosActuales + ANSI_RESET);
+            if (abierto) {
+                if (!trenEnViaje && pasajerosActuales < CAPACIDAD_TREN) {
+                    seSubio = true;
+                    // Subir al tren
+                    pasajerosActuales++;
+                    System.out.println(
+                            ANSI_RED + "GOMONES --- " + Thread.currentThread().getName()
+                                    + " abordó el tren. Pasajeros actuales: "
+                                    + pasajerosActuales + ANSI_RESET);
 
-                // Si se llena el tren, notificar al conductor
-                if (pasajerosActuales == CAPACIDAD_TREN) {
-                    trenListo.signalAll(); // Despertar al conductor para que salga
+                    // Si se llena el tren, notificar al conductor
+                    if (pasajerosActuales == CAPACIDAD_TREN) {
+                        trenListo.signalAll(); // Despertar al conductor para que salga
+                    }
                 }
+            } else {
+                System.out.println(" SUPER XD ASMDOAS D");
+                return seSubio;
             }
         } finally {
             lockTren.unlock();
@@ -417,15 +157,20 @@ public class Gomones {
 
     public void bajarTren() {
         try {
-            lockTren.lock();
-            bajarTrenI++;
-            bajarTren.await();
-            bajarTrenI--;
-            pasajerosActuales--;
-            System.out.println(ANSI_GREEN + "GOMONES --- " + Thread.currentThread().getName()
-                    + " se baja del tren. Pasajeros actuales: " + pasajerosActuales + ANSI_RESET);
-            if (pasajerosActuales == 0) {
-                volverTren.signal();
+            if (abierto) {
+                lockTren.lock();
+                bajarTrenI++;
+                bajarTren.await();
+                bajarTrenI--;
+                pasajerosActuales--;
+                System.out.println(ANSI_GREEN + "GOMONES --- " + Thread.currentThread().getName()
+                        + " se baja del tren. Pasajeros actuales: " + pasajerosActuales + ANSI_RESET);
+                if (pasajerosActuales == 0) {
+                    volverTren.signal();
+                }
+            } else {
+                System.out.println("SOY VELOZ  ASDAS AFDS FDS ");
+                return;
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -461,13 +206,15 @@ public class Gomones {
     public void cerrar() {
         abierto = false;
 
-        lockCarrera.lock();
-        inicioCarrera.signalAll();
-        esperaGomonDoble.signalAll();
-        esperaGomonInd.signalAll();
-        esperandoCarrera.signalAll();
-        esperandoCompañero.signalAll();
-        lockCarrera.unlock();
+        /*
+         * lockCarrera.lock();
+         * inicioCarrera.signalAll();
+         * esperaGomonDoble.signalAll();
+         * esperaGomonInd.signalAll();
+         * esperandoCarrera.signalAll();
+         * esperandoCompañero.signalAll();
+         * lockCarrera.unlock();
+         */
 
     }
 
@@ -481,5 +228,150 @@ public class Gomones {
         System.out.println(bajarTrenI + " <- bajarTren");
         System.out.println(trenListoI + " <- trenListo");
         System.out.println(abierto + " <- abierto");
+    }
+
+    public void realizarActividad(boolean usaGomonDoble, Visitante visitante)
+            throws InterruptedException {
+        Gomon miGomon = null;
+        try {
+            lockCarrera.lock();
+            if (usaGomonDoble) {
+                System.out.println("GOMONES --- " + Thread.currentThread().getName() + " obtiene un gomon doble.");
+                if (!esperandoDobles.isEmpty()) {
+                    miGomon = esperandoDobles.poll();
+                    ((GomonDoble) miGomon).añadirCompañero(visitante);
+                    esperandoCar++;
+                    while (gomonesListos >= H) {
+                        esperandoCarrera.await(4, TimeUnit.SECONDS);
+                        if (!abierto) {
+                            System.out.println("                                              XD");
+                            esperandoCar--;
+                            return;
+                        }
+                    }
+                    esperandoCar--;
+                    gomonesListos++;
+                    esperandoCompañero.signalAll();
+                } else {
+                    esperandoGomonDoble++;
+                    while (disponiblesDobles.isEmpty()) {
+                        esperaGomonDoble.await();
+                    }
+                    esperandoGomonDoble--;
+                    miGomon = disponiblesDobles.poll(4000, TimeUnit.MILLISECONDS);
+                    if (miGomon == null) {
+                        System.out.println("GOMONES --- " + Thread.currentThread().getName()
+                                + " se retira ya que no hay gomones dobles.");
+                        return;
+                    }
+                    miGomon.añadirVisitante(visitante);
+                    esperandoDobles.add((GomonDoble) miGomon);
+                    System.out.println("GOMONES --- " + Thread.currentThread().getName() + " espera por un compañero.");
+                    esperandoCom++;
+                    while (((GomonDoble) miGomon).getSegundoVisitante() == null) {
+                        esperandoCompañero.await(4, TimeUnit.SECONDS);
+                        if (!abierto) {
+                            System.out.println("                                              XD");
+                            esperandoCom--;
+                            return;
+                        }
+                    }
+                    esperandoCom--;
+                    System.out.println("GOMONES --- " + Thread.currentThread().getName() + " consigue compañero "
+                            + ((GomonDoble) miGomon).getSegundoVisitante().toString() + ".");
+                }
+            } else {
+                esperandoGomonInd++;
+                while (disponiblesIndividuales.isEmpty()) {
+                    esperaGomonInd.await();
+                }
+                esperandoGomonInd--;
+                miGomon = disponiblesIndividuales.poll(4000, TimeUnit.MILLISECONDS);
+                if (miGomon == null) {
+                    System.out.println("GOMONES --- " + Thread.currentThread().getName()
+                            + " se retira ya que no hay gomones individuales.");
+                    return;
+                }
+                miGomon.añadirVisitante(visitante);
+                esperandoCar++;
+                while (gomonesListos >= H) {
+                    esperandoCarrera.await(4, TimeUnit.SECONDS);
+                    if (!abierto) {
+                        System.out.println("                                              XD");
+                        esperandoCar--;
+                        return;
+                    }
+                }
+                esperandoCar--;
+                gomonesListos++;
+                System.out.println("GOMONES --- " + Thread.currentThread().getName() + " obtiene un gomon individual.");
+            }
+
+            // Ya con gomon listo, espera a que haya H gomones listos. Si los hay, comienza
+            // la carrera
+            if (gomonesListos == H) {
+                enCarrera = true;
+                inicioCarrera.signalAll();
+            } else {
+                inicioCar++;
+                while (!enCarrera) {
+                    esperandoCarrera.signalAll();
+                    inicioCarrera.await();
+                }
+                inicioCar--;
+            }
+            lockCarrera.unlock();
+
+            System.out.println("GOMONES --- " + Thread.currentThread().getName() + " inicia la carrera.");
+            Thread.sleep(miGomon.correr());
+
+            lockCarrera.lock();
+            if (miGomon.esPrimerVisitante(visitante)) {
+                switch (posiciones) {
+                    case 1:
+                        System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
+                                + " salió primero en la carrera!" + ANSI_RESET);
+                        posiciones++;
+                        break;
+                    case 2:
+                        System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
+                                + " salió segundo en la carrera!" + ANSI_RESET);
+                        posiciones++;
+                        break;
+                    case 3:
+                        System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
+                                + " salió tercero en la carrera!" + ANSI_RESET);
+                        posiciones++;
+                        break;
+                    case 5:
+                        System.out.println(
+                                ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString() + " terminó la carrera."
+                                        + ANSI_RESET);
+                        posiciones = 1;
+                        gomonesListos = 0;
+                        enCarrera = false;
+                        esperandoCarrera.signalAll();
+                        break;
+                    default:
+                        System.out.println(
+                                ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString() + " terminó la carrera."
+                                        + ANSI_RESET);
+                        posiciones++;
+                        break;
+                }
+            }
+        } finally {
+            if (miGomon != null) {
+                if (usaGomonDoble) {
+                    ((GomonDoble) miGomon).reiniciar();
+                    disponiblesDobles.put((GomonDoble) miGomon);
+                    esperaGomonDoble.signalAll();
+                } else {
+                    disponiblesIndividuales.put((GomonIndividual) miGomon);
+                    esperaGomonInd.signalAll();
+                }
+            }
+            lockCarrera.unlock();
+        }
     }
 }
