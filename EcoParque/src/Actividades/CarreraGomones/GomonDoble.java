@@ -2,8 +2,15 @@ package Actividades.CarreraGomones;
 
 import Hilos.Visitante;
 
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class GomonDoble extends Gomon {
+    private final Lock lock = new ReentrantLock();
+    private final Condition parejaLista = lock.newCondition();
     private Visitante segundoVisitante;
+    boolean primerTripulanteEsperando = false;
 
     public GomonDoble(int numeroGomon) {
         super(numeroGomon);
@@ -31,5 +38,24 @@ public class GomonDoble extends Gomon {
 
     public void reiniciar() {
         segundoVisitante = null;
+    }
+
+    public void subirAlGomon(Visitante visitante) throws InterruptedException {
+        lock.lock();
+        try {
+            if (!primerTripulanteEsperando) {
+                // Primer tripulante espera a su pareja
+                primerTripulanteEsperando = true;
+                this.añadirVisitante(visitante);
+                parejaLista.await();  // se bloquea hasta que llegue otro
+            } else {
+                // Segundo tripulante ha llegado
+                this.añadirCompañero(visitante);
+                parejaLista.signal(); // despierta al primero
+                primerTripulanteEsperando = false;
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 }

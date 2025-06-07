@@ -23,7 +23,7 @@ public class Reloj extends Thread {
         while (true) {
             horario.aumentarTiempo();
             try {
-                Thread.sleep(80);
+                Thread.sleep(120);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

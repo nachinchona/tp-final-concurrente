@@ -14,7 +14,7 @@ public class Ingreso {
     private boolean hayPasajerosEsperando = false;
     private int pasajerosEsperando = 0;
     private CyclicBarrier colectivo = new CyclicBarrier(26, () -> {
-        System.out.println("INGRESO --- Comienza tour por colectivo folklórico!");
+        //System.out.println("INGRESO --- Comienza tour por colectivo folklórico!");
         incrementarViajes();
     });
     private Semaphore molinetes = new Semaphore(6);
@@ -40,7 +40,7 @@ public class Ingreso {
     }
 
     public void ingresarPorTour() throws InterruptedException {
-        System.out.println("INGRESO --- " + Thread.currentThread().getName() + " entró a colectivo folklórico.");
+        //System.out.println("INGRESO --- " + Thread.currentThread().getName() + " entró a colectivo folklórico.");
         try {
             aumentarPasajeros();
             colectivo.await();
@@ -55,10 +55,10 @@ public class Ingreso {
         if (parque.estaAbierto()) {
             Random r = new Random();
             molinetes.acquire();
-            System.out.println("INGRESO --- " + Thread.currentThread().getName() + " entró al molinete.");
+            //System.out.println("INGRESO --- " + Thread.currentThread().getName() + " entró al molinete.");
             Thread.sleep(r.nextInt(500, 1000));
             molinetes.release();
-            System.out.println("INGRESO --- " + Thread.currentThread().getName() + " salió del molinete.");
+            //System.out.println("INGRESO --- " + Thread.currentThread().getName() + " salió del molinete.");
         }
     }
 

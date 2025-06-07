@@ -32,10 +32,10 @@ public class Colectivero extends Thread {
                     if (parque.estaAbierto()) {
                         if (ingreso.hayPasajerosEsperando()) {
                             ingreso.incrementarViajes(); // ya que no lo hace la barrera
-                            System.out.println("INGRESO --- Comienza viaje folklórico con menos de 25 pasajeros.");
+                            //System.out.println("INGRESO --- Comienza viaje folklórico con menos de 25 pasajeros.");
                         }
                     } else {
-                        System.out.println("INGRESO --- Viaje no comenzó porque el parque está cerrado.");
+                        //System.out.println("INGRESO --- Viaje no comenzó porque el parque está cerrado.");
                     }
                     colectivo.reset();
                 }
