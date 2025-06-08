@@ -11,4 +11,7 @@ public class GomonIndividual extends Gomon {
     public void añadirVisitante(Visitante visitante) {
         super.añadirVisitante(visitante);
     }
+
+    public void reiniciar() {super.reiniciar();}
+
 }

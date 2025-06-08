@@ -25,7 +25,7 @@ public class Visitante extends Thread {
                 e.printStackTrace();
             }
         } else {
-            //System.out.println("CERRADO --- EcoParque cerró sus puertas. Vuelva mañana a las 9:00 am!");
+            System.out.println("CERRADO --- EcoParque cerró sus puertas. Vuelva mañana a las 9:00 am!");
         }
 
         boolean quiereIrse = false; 
@@ -40,10 +40,10 @@ public class Visitante extends Thread {
         }
         
         if (!parque.sePuedenRealizarActividades()) {
-            //System.out.println("HASTA PRONTO! --- El visitante " + this.getName() + " se retira del parque.");
+            System.out.println("HASTA PRONTO! --- El visitante " + this.getName() + " se retira del parque.");
         } else {
             if (quiereIrse) {
-                //System.out.println("HASTA PRONTO! --- " + this.getName() + " quiso irse antes de tiempo de EcoParque.");
+                System.out.println("HASTA PRONTO! --- " + this.getName() + " quiso irse antes de tiempo de EcoParque.");
             }
         }
         parque.salir();

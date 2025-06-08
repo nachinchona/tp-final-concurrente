@@ -59,10 +59,7 @@ public class Gomones {
     private BlockingQueue<GomonDoble> disponiblesDobles = new LinkedBlockingQueue<>();
     private BlockingQueue<GomonDoble> esperandoDobles = new LinkedBlockingQueue<>();
     private Queue<Gomon> gomonesListosQ = new ConcurrentLinkedQueue<>();
-    private int gomonesDoblesListos = 0;
     private int gomonesListos = 0;
-    private int visitantesListos = 0;
-    private int gomonesTotales = 0;
     private int bolsoActual = 0;
     private int posiciones = 1;
     private boolean enCarrera = false;
@@ -92,8 +89,8 @@ public class Gomones {
         boolean seSubio = true;
         if (parque.sePuedenRealizarActividades()) {
             if (eleccionTransporte) {
-                /*System.out.println(ANSI_RED + "GOMONES --- " + Thread.currentThread().getName()
-                        + " usa una bicicleta para llegar." + ANSI_RESET);*/
+                System.out.println(ANSI_RED + "GOMONES --- " + Thread.currentThread().getName()
+                        + " usa una bicicleta para llegar." + ANSI_RESET);
                 bicicletas.acquire();
                 Thread.sleep(1000); // Simula el traslado
                 bicicletas.release();
@@ -107,15 +104,15 @@ public class Gomones {
     public void guardarBolso(Visitante visitante) {
         // Guardar pertenencias
         bolsos.put(visitante, ++bolsoActual);
-        /*System.out.println(
-                "GOMONES --- " + Thread.currentThread().getName() + " guarda pertenencias en el bolso " + bolsoActual);*/
+        System.out.println(
+                "GOMONES --- " + Thread.currentThread().getName() + " guarda pertenencias en el bolso " + bolsoActual);
     }
 
     public void buscarBolso(Visitante visitante) {
-        /*System.out.println(
+        System.out.println(
                 ANSI_GREEN + "GOMONES --- " + Thread.currentThread().getName()
                         + " termina la carrera y recoge su bolso "
-                        + bolsos.get(visitante) + ANSI_RESET);*/
+                        + bolsos.get(visitante) + ANSI_RESET);
         bolsos.remove(visitante);
     }
 
@@ -149,12 +146,12 @@ public class Gomones {
     }
 
     public void volverTren() throws InterruptedException {
-        //System.out.println("GOMONES --- Conductor espera a que bajen todos los pasajeros.");
+        System.out.println("GOMONES --- Conductor espera a que bajen todos los pasajeros.");
         bajarTren.signalAll();
         volverTrenI++;
         volverTren.await();
         volverTrenI--;
-        //System.out.println("GOMONES --- Se bajaron todos los pasajeros, tren pega la vuelta...");
+        System.out.println("GOMONES --- Se bajaron todos los pasajeros, tren pega la vuelta...");
         Thread.sleep(5000);
         trenEnViaje = false;
         trenListo.signalAll();
@@ -168,8 +165,8 @@ public class Gomones {
                 bajarTren.await();
                 bajarTrenI--;
                 pasajerosActuales--;
-                /*System.out.println(ANSI_GREEN + "GOMONES --- " + Thread.currentThread().getName()
-                        + " se baja del tren. Pasajeros actuales: " + pasajerosActuales + ANSI_RESET);*/
+                System.out.println(ANSI_GREEN + "GOMONES --- " + Thread.currentThread().getName()
+                        + " se baja del tren. Pasajeros actuales: " + pasajerosActuales + ANSI_RESET);
                 if (pasajerosActuales == 0) {
                     volverTren.signal();
                 }
@@ -187,12 +184,12 @@ public class Gomones {
     public void controlTren() {
         lockTren.lock();
         try {
-            //System.out.println("GOMONES --- Conductor está esperando completar o tiempo límite...");
+            System.out.println("GOMONES --- Conductor está esperando completar o tiempo límite...");
             trenListo.await(TIEMPO_ESPERA, TimeUnit.SECONDS); // Esperar hasta llenar el tren o alcanzar el tiempo
 
             // Salida del tren
             if (pasajerosActuales > 0) {
-                //System.out.println("GOMONES --- El tren sale con " + pasajerosActuales + " pasajeros.");
+                System.out.println("GOMONES --- El tren sale con " + pasajerosActuales + " pasajeros.");
                 trenEnViaje = true;
 
                 // Simula el viaje
@@ -209,17 +206,10 @@ public class Gomones {
     }
 
     public void cerrar() {
-        abierto = false;
-
-        /*
-         * lockCarrera.lock();
-         * inicioCarrera.signalAll();
-         * esperaGomonDoble.signalAll();
-         * esperaGomonInd.signalAll();
-         * esperandoCarrera.signalAll();
-         * esperandoCompañero.signalAll();
-         * lockCarrera.unlock();
-         */
+         abierto = false;
+         lockCarrera.lock();
+         esperandoCarrera.signalAll();
+         lockCarrera.unlock();
 
     }
 
@@ -242,7 +232,7 @@ public class Gomones {
             if (usaGomonDoble) {
                 if (!esperandoDobles.isEmpty()) {
                     // Hay alguien esperando compañero
-                    miGomon = esperandoDobles.poll();
+                    miGomon = esperandoDobles.poll(4000, TimeUnit.MILLISECONDS);
                 } else {
                     // Espero a que haya un gomon doble disponible
                     while (disponiblesDobles.isEmpty()) {
@@ -289,34 +279,34 @@ public class Gomones {
                 esperaGomonInd.signalAll();
             }
         }
-        lockGomon.lock();
+        lockGomon.unlock();
     }
 
 
-    public void realizarActividad(boolean usaGomonDoble, Visitante visitante)
+    public void realizarActividad(Gomon miGomon, boolean usaGomonDoble, Visitante visitante)
             throws InterruptedException {
-        Gomon miGomon;
-        miGomon = subirGomon(usaGomonDoble, visitante);
-        try {
-            lockCarrera.lock();
-            while (enCarrera) {
-                System.out.println("Espero a que termine la carrera");
-                esperandoCarrera.await();
-            }
-            gomonesListos++;
-            if (gomonesListos == 5) {
-                System.out.println("Soy el ultimo del grupooooo");
-                enCarrera = true;
-                inicioCarrera.signalAll();
-            } else {
-                System.out.println("Espero Grupo");
-                inicioCarrera.await();
-            }
-            lockCarrera.unlock();
-            System.out.println(Thread.currentThread().getName()+" inicia la carrera");
-            Thread.sleep(miGomon.correr());
-            lockCarrera.lock();
-            if (miGomon.esPrimerVisitante(visitante)) {
+        if (miGomon.esPrimerVisitante(visitante)) {
+            try {
+                lockCarrera.lock();
+                esperandoCar++;
+                while (enCarrera) {
+                    esperandoCarrera.await();
+                    if (!abierto) {
+                        return;
+                    }
+                }
+                esperandoCar--;
+                gomonesListos++;
+                if (gomonesListos == 5) {
+                    enCarrera = true;
+                    inicioCarrera.signalAll();
+                } else {
+                    inicioCarrera.await();
+                }
+                lockCarrera.unlock();
+                System.out.println(Thread.currentThread().getName() + " inicia la carrera");
+                Thread.sleep(miGomon.correr());
+                lockCarrera.lock();
                 switch (posiciones) {
                     case 1:
                         System.out.println(ANSI_CYAN + "GOMONES --- El gomón " + miGomon.toString()
@@ -339,10 +329,8 @@ public class Gomones {
                                         + ANSI_RESET);
                         posiciones = 1;
                         gomonesListos = 0;
-                        gomonesTotales = 0;
-                        gomonesDoblesListos = 0;
-                        visitantesListos = 0;
                         enCarrera = false;
+                        System.out.println("AVISO QUE TERMINO");
                         esperandoCarrera.signalAll();
                         break;
                     default:
@@ -352,10 +340,17 @@ public class Gomones {
                         posiciones++;
                         break;
                 }
+            } finally {
+                lockCarrera.unlock();
             }
-        } finally {
-            lockCarrera.unlock();
+            if (usaGomonDoble) {
+                ((GomonDoble) miGomon).avisar();
+            } else {
+                devolverGomon(miGomon, false);
+            }
+        } else {
+            ((GomonDoble) miGomon).esperar();
+            devolverGomon(miGomon, true);
         }
-        devolverGomon(miGomon, usaGomonDoble);
     }
 }

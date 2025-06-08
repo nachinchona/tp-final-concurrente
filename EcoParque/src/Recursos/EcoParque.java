@@ -3,6 +3,7 @@ package Recursos;
 import java.util.Random;
 import java.util.concurrent.BrokenBarrierException;
 
+import Actividades.CarreraGomones.Gomon;
 import Hilos.Reloj;
 import Hilos.Visitante;
 import Actividades.CarreraGomones.Chofer;
@@ -101,7 +102,7 @@ public class EcoParque {
             gomones.bajarTren();
         }
         gomones.guardarBolso(visitante);
-        gomones.realizarActividad(eleccionGomon, visitante);
+        gomones.realizarActividad(gomones.subirGomon(eleccionGomon, visitante), eleccionGomon, visitante);
         gomones.buscarBolso(visitante);
     }
 
@@ -177,7 +178,7 @@ public class EcoParque {
 
     public boolean sePuedenRealizarActividades() {
         int hora = interfaz.getHora();
-        return 9 <= hora && hora < 17 && interfaz.getMinuto() < 30;
+        return 9 <= hora && hora < 17;
     }
 
     public EquipoSnorkel getEquipoSnorkel() {

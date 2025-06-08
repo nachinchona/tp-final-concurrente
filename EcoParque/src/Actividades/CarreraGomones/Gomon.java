@@ -37,4 +37,8 @@ public abstract class Gomon {
     public boolean esPrimerVisitante(Visitante visitante) {
         return this.primerVisitante.equals(visitante);
     }
+
+    public void reiniciar() {
+        primerVisitante = null;
+    }
 }

@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class GomonDoble extends Gomon {
     private final Lock lock = new ReentrantLock();
     private final Condition parejaLista = lock.newCondition();
+    private final Condition esperar = lock.newCondition();
     private Visitante segundoVisitante;
     boolean primerTripulanteEsperando = false;
 
@@ -37,7 +38,19 @@ public class GomonDoble extends Gomon {
     }
 
     public void reiniciar() {
+        super.reiniciar();
         segundoVisitante = null;
+    }
+
+    public void esperar() throws InterruptedException {
+        lock.lock();
+        esperar.await();
+        lock.lock();
+    }
+    public void avisar()  {
+        lock.lock();
+        esperar.signal();
+        lock.unlock();
     }
 
     public void subirAlGomon(Visitante visitante) throws InterruptedException {
