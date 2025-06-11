@@ -2,6 +2,7 @@ package Actividades.CarreraGomones;
 
 import Hilos.Visitante;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -11,7 +12,7 @@ public class GomonDoble extends Gomon {
     private final Condition parejaLista = lock.newCondition();
     private final Condition esperar = lock.newCondition();
     private Visitante segundoVisitante;
-    boolean primerTripulanteEsperando = false;
+    boolean soyElPrimero = true;
 
     public GomonDoble(int numeroGomon) {
         super(numeroGomon);
@@ -42,30 +43,51 @@ public class GomonDoble extends Gomon {
         segundoVisitante = null;
     }
 
-    public void esperar() throws InterruptedException {
+    public void esperarCompañero(boolean parqueAbierto) throws InterruptedException {
         lock.lock();
-        esperar.await();
-        lock.lock();
+        boolean bandera = false;
+        try {
+            while (parqueAbierto && !bandera) {
+                // Espera con tiempo límite para verificar periódicamente
+                if (esperar.await(10, TimeUnit.SECONDS)) {
+                    bandera = true;
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
     }
-    public void avisar()  {
+
+    public void interrumpirEspera() {
         lock.lock();
-        esperar.signal();
-        lock.unlock();
+        try {
+            esperar.signalAll(); // Despierta a todos los que están esperando
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void avisar() {
+        lock.lock();
+        try {
+            esperar.signal();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void subirAlGomon(Visitante visitante) throws InterruptedException {
         lock.lock();
         try {
-            if (!primerTripulanteEsperando) {
+            if (soyElPrimero) {
                 // Primer tripulante espera a su pareja
-                primerTripulanteEsperando = true;
+                soyElPrimero = false;
                 this.añadirVisitante(visitante);
-                parejaLista.await();  // se bloquea hasta que llegue otro
             } else {
                 // Segundo tripulante ha llegado
                 this.añadirCompañero(visitante);
-                parejaLista.signal(); // despierta al primero
-                primerTripulanteEsperando = false;
+                soyElPrimero = true;
+                esperar.signal();
             }
         } finally {
             lock.unlock();

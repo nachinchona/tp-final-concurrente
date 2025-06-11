@@ -33,10 +33,19 @@ public class Reloj extends Thread {
             if (horario.getHora() % 2 == 0 && horario.getMinuto() == 45) {
                 parque.getNadoDelfines().avisarControl();
             }
-            if (horario.getHora() == 17 && horario.getMinuto() == 30) {
-                System.out.println(ANSI_PURPLE + "------------------------------ PARQUE CERRADO ------------------------------" + ANSI_RESET);
+            if (horario.getHora() == 17 && horario.getMinuto() == 45) {
                 parque.cerrar();
             }
+            if (horario.getHora() == 18 && horario.getMinuto() == 00) {
+                System.out.println(ANSI_PURPLE + "------------------------------ CIERRAN ACTIVIDADES ------------------------------" + ANSI_RESET);
+                parque.cerrar();
+            }
+
+            if (horario.getHora() == 19 && horario.getMinuto() == 00) {
+                System.out.println(ANSI_PURPLE + "------------------------------ CIERRA PARQUE ------------------------------" + ANSI_RESET);
+                parque.cerrar();
+            }
+
             if (horario.getHora() > 18 && horario.getMinuto() == 00) {
                 System.out.println("==============================================");
                 parque.getGomones().imprimirEstado();
