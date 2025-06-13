@@ -20,6 +20,7 @@ public class EcoParque {
     Interfaz interfaz = new Interfaz();
     Reloj reloj = new Reloj(interfaz, this);
 
+    private boolean sePuedenRealizarActividades = true;
     // actividades e ingreso
     Ingreso ingreso = new Ingreso(interfaz, this);
     Tienda tienda = new Tienda();
@@ -61,15 +62,14 @@ public class EcoParque {
     }
 
     public void irAFaroMirador(Visitante visitante) throws InterruptedException {
-        faro.ocuparEscalon(visitante);
-        Thread.sleep(r.nextInt(1000));
-        boolean rta = faro.desocuparEscalon(visitante);
-        if (rta) {
+        if (faro.ocuparEscalon(visitante)) {
             faro.avisarAdministrador();
             boolean toboganAsignado = faro.esperarAviso();
-            boolean sigue = faro.usarTobogan(toboganAsignado);
-            Thread.sleep(r.nextInt(2000, 4000));
-            if (sigue) { faro.liberarTobogan(toboganAsignado); }
+            if (!faro.desocuparEscalon(visitante)) {
+                faro.usarTobogan(toboganAsignado);
+                Thread.sleep(r.nextInt(2000, 4000));
+                faro.liberarTobogan(toboganAsignado);
+            }
         }
     }
 
@@ -107,11 +107,11 @@ public class EcoParque {
     }
 
     public void nadarConDelfines(Visitante visitante) throws InterruptedException {
-        Pileta pileta = nado.buscarPileta();
-        if (pileta != null) {
-            nado.nadar();
-            nado.salirPileta(pileta);
-        }
+            Pileta pileta = nado.buscarPileta();
+            if (pileta != null) {
+                nado.nadar();
+                nado.salirPileta(pileta);
+            }
     }
 
     public void comprarSouvenir(Visitante visitante) throws InterruptedException {
@@ -137,9 +137,8 @@ public class EcoParque {
 
     public void realizarActividad(int eleccion, Visitante visitante)
             throws InterruptedException, BrokenBarrierException {
-        if (sePuedenRealizarActividades()) {
-            /* switch (r.nextInt(0,5)) { */
-            switch (3) {
+        if (sePuedenRealizarActividades) {
+            switch (r.nextInt(0,5)) {
                 case 0:
                     hacerSnorkel(visitante);
                     break;
@@ -176,9 +175,13 @@ public class EcoParque {
         return 9 <= hora && hora < 17;
     }
 
+
+    public void cerrarActividades() {
+        sePuedenRealizarActividades = false;
+    }
+
     public boolean sePuedenRealizarActividades() {
-        int hora = interfaz.getHora();
-        return 9 <= hora && hora < 17;
+        return sePuedenRealizarActividades;
     }
 
     public EquipoSnorkel getEquipoSnorkel() {

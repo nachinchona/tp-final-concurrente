@@ -27,34 +27,32 @@ public class Reloj extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            if (horario.getHora() % 2 == 0 && horario.getMinuto() == 0) {
-                parque.getNadoDelfines().avisarControl();
-            }
-            if (horario.getHora() % 2 == 0 && horario.getMinuto() == 45) {
-                parque.getNadoDelfines().avisarControl();
-            }
-            if (horario.getHora() == 17 && horario.getMinuto() == 45) {
-                parque.cerrar();
-            }
-            if (horario.getHora() == 18 && horario.getMinuto() == 00) {
-                System.out.println(ANSI_PURPLE + "------------------------------ CIERRAN ACTIVIDADES ------------------------------" + ANSI_RESET);
-                parque.cerrar();
+
+            if (horario.getHora() == 16 && horario.getMinuto() == 0) {
+                parque.getNadoDelfines().cerrar();
             }
 
-            if (horario.getHora() == 19 && horario.getMinuto() == 00) {
+            if (horario.getHora() <= 16 && horario.getHora() % 2 == 0 && horario.getMinuto() == 0) {
+                parque.getNadoDelfines().avisarControl();
+            }
+
+            if (horario.getHora() <= 16 && horario.getHora() % 2 == 0 && horario.getMinuto() == 45) {
+                parque.getNadoDelfines().avisarControl();
+            }
+
+            if (horario.getHora() == 17 && horario.getMinuto() == 45) {
+                parque.cerrar();
+                parque.cerrarActividades();
+            }
+            if (horario.getHora() == 18 && horario.getMinuto() == 0) {
+                System.out.println(ANSI_PURPLE + "------------------------------ CIERRAN ACTIVIDADES ------------------------------" + ANSI_RESET);
+            }
+
+            if (horario.getHora() == 19 && horario.getMinuto() == 0) {
                 System.out.println(ANSI_PURPLE + "------------------------------ CIERRA PARQUE ------------------------------" + ANSI_RESET);
                 parque.cerrar();
             }
 
-            if (horario.getHora() > 18 && horario.getMinuto() == 00) {
-                System.out.println("==============================================");
-                parque.getGomones().imprimirEstado();
-                System.out.println("==============================================");
-            }
-            if (horario.getHora() > 20 && horario.getMinuto() == 00) {
-                Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-                System.out.println(threadSet);
-            }
         }
         
     }

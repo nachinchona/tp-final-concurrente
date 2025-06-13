@@ -19,6 +19,7 @@ public class NadoDelfines {
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_CYAN = "\u001B[46m";
+    private volatile boolean abierto = true;
 
     private boolean sePuedeNadar = false;
 
@@ -28,12 +29,16 @@ public class NadoDelfines {
         }
     }
 
+    public void cerrar() {
+        abierto = false;
+    }
+
     public Pileta buscarPileta() {
         lockPileta.lock();
         Pileta pileta = null;
         int i = 0;
         boolean encontrado = false;
-        while (!encontrado && !sePuedeNadar && i < piletas.length) {
+        while (abierto && !encontrado && !sePuedeNadar && i < piletas.length) {
             if (!piletas[i].estaOcupada()) {
                 pileta = piletas[i];
                 boolean rta = pileta.ingresar();

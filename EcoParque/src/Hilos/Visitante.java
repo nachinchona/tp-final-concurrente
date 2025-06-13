@@ -33,7 +33,7 @@ public class Visitante extends Thread {
             int siguienteActividad = r.nextInt(4);
             try {
                 parque.realizarActividad(siguienteActividad, this);
-                quiereIrse = r.nextInt(125) > 123;
+                //quiereIrse = r.nextInt(1000) > 998;
             } catch (InterruptedException | BrokenBarrierException e) {
                 e.printStackTrace();
             }

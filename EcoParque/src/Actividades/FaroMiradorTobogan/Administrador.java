@@ -18,17 +18,14 @@ public class Administrador extends Thread {
     public void run() {
         System.out.println("FARO MIRADOR --- Administrador listo.");
         while (parque.sePuedenRealizarActividades()) {
-            boolean toboganAsignado = r.nextBoolean();
             try {
-                faro.asignarTobogan(toboganAsignado);
+                faro.asignarTobogan();
                 faro.avisarVisitante();
                 Thread.sleep(200);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        if (!parque.sePuedenRealizarActividades()) {
-            faro.cerrar();
-        }
+        faro.cerrar();
     }
 }
