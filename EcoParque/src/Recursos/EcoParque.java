@@ -23,7 +23,7 @@ public class EcoParque {
     private boolean sePuedenRealizarActividades = true;
     // actividades e ingreso
     Ingreso ingreso = new Ingreso(interfaz, this);
-    Tienda tienda = new Tienda();
+    Tienda tienda = new Tienda(this);
     NadoDelfines nado = new NadoDelfines();
     FaroMirador faro = new FaroMirador(this);
     EquipoSnorkel snorkel = new EquipoSnorkel(this);
@@ -138,7 +138,7 @@ public class EcoParque {
     public void realizarActividad(int eleccion, Visitante visitante)
             throws InterruptedException, BrokenBarrierException {
         if (sePuedenRealizarActividades) {
-            switch (r.nextInt(0,5)) {
+            switch (eleccion) {
                 case 0:
                     hacerSnorkel(visitante);
                     break;
@@ -174,7 +174,6 @@ public class EcoParque {
         int hora = interfaz.getHora();
         return 9 <= hora && hora < 17;
     }
-
 
     public void cerrarActividades() {
         sePuedenRealizarActividades = false;

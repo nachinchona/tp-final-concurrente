@@ -44,6 +44,7 @@ public class Reloj extends Thread {
                 parque.cerrar();
                 parque.cerrarActividades();
             }
+            
             if (horario.getHora() == 18 && horario.getMinuto() == 0) {
                 System.out.println(ANSI_PURPLE + "------------------------------ CIERRAN ACTIVIDADES ------------------------------" + ANSI_RESET);
             }
@@ -52,7 +53,6 @@ public class Reloj extends Thread {
                 System.out.println(ANSI_PURPLE + "------------------------------ CIERRA PARQUE ------------------------------" + ANSI_RESET);
                 parque.cerrar();
             }
-
         }
         
     }

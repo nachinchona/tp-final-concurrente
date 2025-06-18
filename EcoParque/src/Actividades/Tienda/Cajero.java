@@ -14,7 +14,7 @@ public class Cajero extends Thread {
 
     public void run() {
         System.out.println("TIENDA --- Cajero listo.");
-        while (parque.sePuedenRealizarActividades()) {
+        while (true) {
             try {
                 tienda.atender();
             } catch (InterruptedException e) {

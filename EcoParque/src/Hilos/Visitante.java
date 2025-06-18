@@ -30,7 +30,7 @@ public class Visitante extends Thread {
 
         boolean quiereIrse = false; 
         while (parque.sePuedenRealizarActividades() && !quiereIrse) {
-            int siguienteActividad = r.nextInt(4);
+            int siguienteActividad = r.nextInt(0,5);
             try {
                 parque.realizarActividad(siguienteActividad, this);
                 //quiereIrse = r.nextInt(1000) > 998;
