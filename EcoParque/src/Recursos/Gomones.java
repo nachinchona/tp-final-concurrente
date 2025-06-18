@@ -5,11 +5,9 @@ import Actividades.CarreraGomones.GomonDoble;
 import Actividades.CarreraGomones.GomonIndividual;
 import Hilos.Visitante;
 
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -29,11 +27,8 @@ public class Gomones {
 
     private final Lock lockTren = new ReentrantLock(); // Lock para manejar pasajeros
     private final Condition trenListo = lockTren.newCondition(); // Notificación para la salida del tren
-    private int trenListoI = 0;
     private final Condition bajarTren = lockTren.newCondition();
-    private int bajarTrenI = 0;
     private final Condition volverTren = lockTren.newCondition();
-    private int volverTrenI = 0;
 
     private int pasajerosActuales = 0; // Contador de pasajeros en el tren
     private boolean trenEnViaje = false; // Indica si el tren está en viaje
@@ -45,11 +40,7 @@ public class Gomones {
     private Lock lockGomonIndividual = new ReentrantLock(true);
     private Lock lockCarrera = new ReentrantLock(true);
     private final Condition inicioCarrera = lockCarrera.newCondition();
-    private int inicioCar = 0;
     private final Condition esperandoCarrera = lockCarrera.newCondition();
-    private int esperandoCar = 0;
-    private int esperandoGomonInd = 0;
-    private int esperandoGomonDoble = 0;
     private final HashMap<Visitante, Integer> bolsos = new HashMap<>();
 
     // Donde estan los gomones
@@ -58,19 +49,10 @@ public class Gomones {
     private BlockingQueue<GomonDoble> disponiblesDobles = new LinkedBlockingQueue<>();
     private BlockingQueue<GomonDoble> esperandoDobles = new LinkedBlockingQueue<>();
     private BlockingQueue<GomonDoble> esperandoCompañero = new LinkedBlockingQueue<>();
-    private Queue<Gomon> gomonesListosQ = new ConcurrentLinkedQueue<>();
     private int gomonesListos = 0;
     private int bolsoActual = 0;
     private int posiciones = 1;
     private boolean enCarrera = false;
-    private String gomonesACorrer = "GOMONES LISTOS \n";
-    private CyclicBarrier inicioCarreraCL = new CyclicBarrier(H, () -> {
-        System.out.println("GOMONES LISTOS \n");
-        for (Gomon gomon : gomonesListosQ) {
-            System.out.println(gomon.toString());
-        }
-        enCarrera = true;
-    });
 
     private EcoParque parque;
 
@@ -147,9 +129,7 @@ public class Gomones {
     public void volverTren() throws InterruptedException {
         //System.out.println("GOMONES --- Conductor espera a que bajen todos los pasajeros.");
         bajarTren.signalAll();
-        volverTrenI++;
         volverTren.await();
-        volverTrenI--;
         //System.out.println("GOMONES --- Se bajaron todos los pasajeros, tren pega la vuelta...");
         Thread.sleep(5000);
         trenEnViaje = false;
@@ -160,9 +140,7 @@ public class Gomones {
         try {
             if (abierto) {
                 lockTren.lock();
-                bajarTrenI++;
                 bajarTren.await();
-                bajarTrenI--;
                 pasajerosActuales--;
                 /*System.out.println(ANSI_GREEN + "GOMONES --- " + Thread.currentThread().getName()
                         + " se baja del tren. Pasajeros actuales: " + pasajerosActuales + ANSI_RESET);*/
@@ -170,7 +148,6 @@ public class Gomones {
                     volverTren.signal();
                 }
             } else {
-                System.out.println("SOY VELOZ  ASDAS AFDS FDS ");
                 return;
             }
         } catch (InterruptedException e) {
@@ -217,16 +194,6 @@ public class Gomones {
          esperandoCompañero.clear();
          esperandoCarrera.signalAll();
          lockCarrera.unlock();
-    }
-
-    public void imprimirEstado() {
-        System.out.println(esperandoCar + " <- ESPERANDO A QUE CARRERA TERMINE");
-        System.out.println(esperandoGomonDoble + " <- Esperando en lock del gomon");
-        //System.out.println(esperandoGomonInd + " <- esperaGomonIndv");
-        System.out.println(volverTrenI + " <- volverTren");
-        System.out.println(bajarTrenI + " <- bajarTren");
-        System.out.println(trenListoI + " <- trenListo");
-        System.out.println(abierto + " <- abierto");
     }
 
     public GomonDoble subirDoble(Visitante visitante) throws InterruptedException {
@@ -294,12 +261,11 @@ public class Gomones {
                     while (enCarrera) {
                         esperandoCarrera.await();
                         if (!abierto) {
-                            esperandoCar--;
                             return;
                         }
                     }
                     gomonesListos++;
-                    if (gomonesListos == 5) {
+                    if (gomonesListos == H) {
                         enCarrera = true;
                         inicioCarrera.signalAll();
                     } else {

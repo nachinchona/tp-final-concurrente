@@ -4,11 +4,9 @@ import Recursos.EcoParque;
 import Recursos.Tienda;
 
 public class Cajero extends Thread {
-    private EcoParque parque;
     private Tienda tienda;
 
     public Cajero(EcoParque parque) {
-        this.parque = parque;
         this.tienda = parque.getTienda();
     }
 

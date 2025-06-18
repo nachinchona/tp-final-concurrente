@@ -11,7 +11,6 @@ import Recursos.Interfaz;
 public class Ingreso {
     private EcoParque parque;
     private int viajes = 0;
-    private boolean hayPasajerosEsperando = false;
     private int pasajerosEsperando = 0;
     private CyclicBarrier colectivo = new CyclicBarrier(26, () -> {
         //System.out.println("INGRESO --- Comienza tour por colectivo folklórico!");

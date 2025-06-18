@@ -1,5 +1,4 @@
 package Hilos;
-import java.util.Set;
 
 import Recursos.EcoParque;
 import Recursos.Interfaz;
@@ -44,7 +43,7 @@ public class Reloj extends Thread {
                 parque.cerrar();
                 parque.cerrarActividades();
             }
-            
+
             if (horario.getHora() == 18 && horario.getMinuto() == 0) {
                 System.out.println(ANSI_PURPLE + "------------------------------ CIERRAN ACTIVIDADES ------------------------------" + ANSI_RESET);
             }

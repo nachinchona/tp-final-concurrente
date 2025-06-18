@@ -9,7 +9,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class GomonDoble extends Gomon {
     private final Lock lock = new ReentrantLock();
-    private final Condition parejaLista = lock.newCondition();
     private final Condition esperar = lock.newCondition();
     private Visitante segundoVisitante;
     boolean soyElPrimero = true;
@@ -80,11 +79,11 @@ public class GomonDoble extends Gomon {
         lock.lock();
         try {
             if (soyElPrimero) {
-                // Primer tripulante espera a su pareja
+                // Primer visitante espera a su pareja
                 soyElPrimero = false;
                 this.añadirVisitante(visitante);
             } else {
-                // Segundo tripulante ha llegado
+                // Segundo visitante ha llegado
                 this.añadirCompañero(visitante);
                 soyElPrimero = true;
                 esperar.signal();
