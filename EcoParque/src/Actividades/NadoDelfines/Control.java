@@ -1,6 +1,7 @@
 package Actividades.NadoDelfines;
 
 import Recursos.EcoParque;
+import Recursos.NadoDelfines;
 
 public class Control extends Thread {
     // controla que se llenen al menos 3 piletas
@@ -14,7 +15,7 @@ public class Control extends Thread {
     }
 
     public void run() {
-        while(parque.sePuedenRealizarActividades()) {
+        while(true) {
             try {
                 nadoDelfines.esperarPiletasLlenas();
                 if (nadoDelfines.getSePuedeNadar()) {

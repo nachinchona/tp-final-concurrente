@@ -2,7 +2,8 @@ package Hilos;
 
 import Recursos.EcoParque;
 import Recursos.Interfaz;
-
+import java.util.Map;
+import java.util.Set;
 public class Reloj extends Thread {
     private Interfaz horario;
     private EcoParque parque;
@@ -51,6 +52,23 @@ public class Reloj extends Thread {
             if (horario.getHora() == 19 && horario.getMinuto() == 0) {
                 System.out.println(ANSI_PURPLE + "------------------------------ CIERRA PARQUE ------------------------------" + ANSI_RESET);
                 parque.cerrar();
+            }
+
+            if (horario.getHora() > 19 && horario.getMinuto() == 0) {
+                Map<Thread, StackTraceElement[]> todosHilos = Thread.getAllStackTraces();
+                Set<Thread> hilos = todosHilos.keySet();
+                // Print header for better readability
+                System.out.printf("%-25s %-15s %-10s %-10s%n", "Thread Name", "State", "Priority", "isDaemon");
+                System.out.println("------------------------------------------------------------------");
+
+                // Iterate through the threads and print their details
+                for (Thread t : hilos) {
+                    System.out.printf("%-25s %-15s %-10d %-10b%n", 
+                                    t.getName(), 
+                                    t.getState(), 
+                                    t.getPriority(), 
+                                    t.isDaemon());
+                }
             }
         }
         

@@ -1,12 +1,9 @@
-package Actividades.Ingreso;
+package Recursos;
 
 import java.util.Random;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Semaphore;
-
-import Recursos.EcoParque;
-import Recursos.Interfaz;
 
 public class Ingreso {
     private EcoParque parque;

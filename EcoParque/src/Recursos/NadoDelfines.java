@@ -1,6 +1,4 @@
-package Actividades.NadoDelfines;
-
-import Recursos.Pileta;
+package Recursos;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -51,7 +49,8 @@ public class NadoDelfines {
             i++;
         }
         if (encontrado) {
-            System.out.println(ANSI_RED + "NADO DELFINES --- " + Thread.currentThread().getName() + " encontró pileta." + ANSI_RESET);
+            System.out.println(ANSI_RED + "NADO DELFINES --- " + Thread.currentThread().getName() + " encontró pileta."
+                    + ANSI_RESET);
         }
         lockPileta.unlock();
         return pileta;
@@ -65,14 +64,17 @@ public class NadoDelfines {
             if (piletasVacias == piletas.length) {
                 esperarPiletasVacias.signal();
             }
+            System.out.println(ANSI_GREEN + "NADO DELFINES --- " + Thread.currentThread().getName() + " se fue de la pileta."
+                    + ANSI_RESET);
         }
+
         lockPileta.unlock();
     }
 
     public void nadar() throws InterruptedException {
         lockPileta.lock();
         esperarAviso.await();
-        if (sePuedeNadar) {
+        while (sePuedeNadar) {
             // Solo si se cumple el cupo
             salirPileta.await();
         }
@@ -100,10 +102,13 @@ public class NadoDelfines {
             System.out.println(ANSI_RED + "NADO DELFINES --- Comienza la actividad." + ANSI_RESET);
             // Espera a que llegue el fin de la actividad
             esperarHorario.await();
+            sePuedeNadar = false;
             salirPileta.signalAll();
             System.out.println(ANSI_GREEN + "NADO DELFINES --- Termina la actividad." + ANSI_RESET);
         } else {
             System.out.println("NADO DELFINES --- Cupo no alcanzado, no comienza la actividad.");
+            esperarAviso.signalAll();
+            // para recibir la segunda señal
             esperarHorario.await();
         }
         lockPileta.unlock();
@@ -118,4 +123,5 @@ public class NadoDelfines {
         }
         lockPileta.unlock();
     }
+
 }

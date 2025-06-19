@@ -9,9 +9,7 @@ import Hilos.Visitante;
 import Actividades.CarreraGomones.Chofer;
 import Actividades.FaroMiradorTobogan.Administrador;
 import Actividades.Ingreso.Colectivero;
-import Actividades.Ingreso.Ingreso;
 import Actividades.NadoDelfines.Control;
-import Actividades.NadoDelfines.NadoDelfines;
 import Actividades.Snorkel.Asistente;
 import Actividades.Tienda.Cajero;
 
@@ -150,12 +148,12 @@ public class EcoParque {
                     break;
                 case 3:
                     // es mas probable que entren por tren
-                    // ver qué pasa si no hay gomones dobles/indiv, lo cual puede causar deadlock
-                    // <<--- no vimos
                     hacerCarreraGomones(r.nextInt(1, 20) > 15, r.nextBoolean(), visitante);
                     break;
                 case 4:
-                    nadarConDelfines(visitante);
+                    if (sePuedeNadar()) {
+                        nadarConDelfines(visitante);
+                    }
                     break;
                 case 5:
                     comprarSouvenir(visitante);
@@ -173,6 +171,11 @@ public class EcoParque {
     public boolean estaAbierto() {
         int hora = interfaz.getHora();
         return 9 <= hora && hora < 17;
+    }
+
+    public boolean sePuedeNadar() {
+        int hora = interfaz.getHora();
+        return 9 <= hora && hora < 17 && interfaz.getMinuto() < 45;
     }
 
     public void cerrarActividades() {

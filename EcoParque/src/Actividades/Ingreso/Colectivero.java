@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import Recursos.EcoParque;
+import Recursos.Ingreso;
 
 public class Colectivero extends Thread {
     private EcoParque parque;
